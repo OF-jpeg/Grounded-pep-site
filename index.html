@@ -10,6 +10,33 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<div class="agegate-ov" id="ageGateOverlay">
+  <div class="agegate-bg"></div>
+  <div class="agegate-modal">
+    <div class="logo-g" style="margin:0 auto 22px;width:44px;height:44px;font-size:20px;border-radius:12px">G</div>
+    <div class="agegate-eyebrow">Age &amp; Content Verification</div>
+    <h1 class="agegate-title">Before you enter Grounded</h1>
+    <p class="agegate-sub">Grounded provides educational research information about peptides, intended strictly for adults. Please confirm the following to continue.</p>
+
+    <div class="agegate-checks">
+      <label class="agegate-check">
+        <input type="checkbox" id="ageCheck1" onchange="validateAgeGate()">
+        <span class="agegate-box"></span>
+        <span class="agegate-txt">I confirm that I am at least <strong>21 years of age</strong>.</span>
+      </label>
+      <label class="agegate-check">
+        <input type="checkbox" id="ageCheck2" onchange="validateAgeGate()">
+        <span class="agegate-box"></span>
+        <span class="agegate-txt">I understand Grounded provides <strong>educational information only</strong> — not medical advice — and I will consult a licensed healthcare professional before using any compound.</span>
+      </label>
+    </div>
+
+    <button class="btn-hero bh1" id="ageEnterBtn" onclick="enterSite()" disabled style="width:100%;justify-content:center;opacity:.4;cursor:not-allowed">Enter Grounded</button>
+    <button class="agegate-exit" onclick="exitSite()">I do not meet these requirements</button>
+
+    <p class="agegate-fine">By entering, you agree to our <a onclick="openLegal('terms')">Terms of Service</a>, <a onclick="openLegal('privacy')">Privacy Policy</a>, and <a onclick="openLegal('disclaimer')">Medical Disclaimer</a>.</p>
+  </div>
+</div>
 <canvas id="bgCanvas"></canvas>
 <div class="aurora"><div class="a1"></div><div class="a2"></div><div class="a3"></div></div>
 <div class="bg-grid"></div>
@@ -235,7 +262,7 @@
       <div><div style="display:flex;align-items:center;gap:8px"><div class="logo-g">G</div><span class="fl-t">Grounded</span></div><p class="fl-d">The AI-powered peptide research platform for informed, science-curious people.</p></div>
       <div><div class="fc-t">Platform</div><a class="fl" onclick="show('db')">Database</a><a class="fl" onclick="show('ai')">AI Guide</a><a class="fl" onclick="show('proto')">Protocol Builder</a><a class="fl" onclick="show('research')">Research Hub</a></div>
       <div><div class="fc-t">Company</div><a class="fl">About</a><a class="fl">Blog</a><a class="fl">Careers</a><a class="fl">Contact</a></div>
-      <div><div class="fc-t">Legal</div><a class="fl">Privacy</a><a class="fl">Terms</a><a class="fl">Disclaimer</a></div>
+      <div><div class="fc-t">Legal</div><a class="fl" onclick="openLegal('privacy')">Privacy</a><a class="fl" onclick="openLegal('terms')">Terms</a><a class="fl" onclick="openLegal('disclaimer')">Disclaimer</a></div>
     </div>
     <div class="fb"><span>© 2025 Grounded. All rights reserved.</span><span>Made for researchers</span></div>
     <div class="fdis">This platform provides educational information for research purposes only. It is not intended to diagnose, treat, cure, or prevent any disease or medical condition. All compounds are research chemicals. Not for human consumption without appropriate medical supervision.</div>
@@ -343,6 +370,19 @@
   </div>
 </div>
 
+<div class="m-ov" id="legalOverlay" onclick="if(event.target.id==='legalOverlay')closeLegal()">
+  <div class="modal" style="width:640px">
+    <button class="m-x" onclick="closeLegal()">✕</button>
+    <div class="m-head">
+      <div class="dbdg" id="legalBadge" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);color:rgba(255,255,255,0.7);display:inline-block;font-size:11px;font-weight:500;padding:4px 12px;border-radius:50px;margin-bottom:12px">Legal</div>
+      <div class="m-name" id="legalTitle" style="font-size:28px">Document</div>
+      <div class="m-sub">Last updated July 2026</div>
+    </div>
+    <div class="m-body" id="legalContent" style="font-size:13px;color:var(--t2);line-height:1.8"></div>
+  </div>
+</div>
+
+<script src="legal.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="auth.js"></script>
 <script src="data.js"></script>
