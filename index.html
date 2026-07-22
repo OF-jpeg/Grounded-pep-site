@@ -7,7 +7,8 @@
 <meta name="description" content="The most intelligent peptide research platform. AI-powered streaming answers, 40+ compounds, protocol builder.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=1784727823">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="stylesheet" href="styles.css?v=1784728042">
 </head>
 <body>
 <div class="agegate-ov" id="ageGateOverlay">
@@ -52,7 +53,11 @@
     <button class="nl" onclick="show('pricing')">Pricing</button>
   </div>
   <div class="nav-r">
-    <button class="btn-ghost" id="navSignInBtn" onclick="openAuth()">Sign in</button>
+    <button class="btn-ghost" id="navSignInBtn" onclick="openAuth('signin')">Sign in</button>
+    <button class="btn-signup" id="navSignUpBtn" onclick="openAuth('signup')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+      Sign up
+    </button>
     <div class="user-chip" id="navUserChip" style="display:none" onclick="toggleUserMenu()">
       <div class="user-chip-avatar" id="userChipAvatar">U</div>
       <span id="userChipName">User</span>
@@ -454,10 +459,10 @@
   </div>
 </div>
 
-<script src="legal.js?v=1784727823"></script>
+<script src="legal.js?v=1784728042"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js?v=1784727823"></script>
-<script src="data.js?v=1784727823"></script>
-<script src="app.js?v=1784727823"></script>
+<script src="auth.js?v=1784728042"></script>
+<script src="data.js?v=1784728042"></script>
+<script src="app.js?v=1784728042"></script>
 </body>
 </html>

@@ -13,7 +13,12 @@ let authMode = 'signin'; // 'signin' | 'signup'
 let currentUser = null;
 
 // ── UI: open / close modal ──────────────────────────────────────────
-function openAuth() {
+function openAuth(mode) {
+  if (mode === 'signup' && authMode !== 'signup') {
+    toggleAuthMode();
+  } else if (mode === 'signin' && authMode !== 'signin') {
+    toggleAuthMode();
+  }
   document.getElementById('authOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
   clearAuthError();
@@ -184,9 +189,11 @@ document.addEventListener('click', (e) => {
 function updateAuthUI(user) {
   currentUser = user;
   const signInBtn = document.getElementById('navSignInBtn');
+  const signUpBtn = document.getElementById('navSignUpBtn');
   const userChip = document.getElementById('navUserChip');
   if (user) {
     signInBtn.style.display = 'none';
+    signUpBtn.style.display = 'none';
     userChip.style.display = 'flex';
     const label = user.user_metadata?.first_name || user.user_metadata?.full_name || user.user_metadata?.user_name || user.email || 'User';
     document.getElementById('userChipName').textContent = label.split(' ')[0];
@@ -194,6 +201,7 @@ function updateAuthUI(user) {
     document.getElementById('userChipAvatar').textContent = label.charAt(0).toUpperCase();
   } else {
     signInBtn.style.display = '';
+    signUpBtn.style.display = '';
     userChip.style.display = 'none';
   }
 }
