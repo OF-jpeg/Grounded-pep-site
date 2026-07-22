@@ -277,6 +277,10 @@ footer{border-top:1px solid var(--b1);padding:48px 64px 36px;max-width:1400px;ma
 .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--b1)}
 .auth-switch{text-align:center;font-size:13px;color:var(--t2);margin-top:20px}
 .auth-switch a{color:var(--t1);font-weight:600;cursor:pointer;text-decoration:underline}
+.auth-name-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.auth-hint{font-size:11.5px;color:var(--t3);margin-top:6px;line-height:1.5}
+.auth-optional{color:var(--t3);font-weight:400;text-transform:none;letter-spacing:0}
+.auth-field-error{border-color:rgba(244,63,94,.5) !important}
 
 /* ═══════════ AGE VERIFICATION GATE ═══════════ */
 .agegate-ov{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}

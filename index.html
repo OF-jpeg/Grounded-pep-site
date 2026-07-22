@@ -7,7 +7,7 @@
 <meta name="description" content="The most intelligent peptide research platform. AI-powered streaming answers, 40+ compounds, protocol builder.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=1784727046">
+<link rel="stylesheet" href="styles.css?v=1784727375">
 </head>
 <body>
 <div class="agegate-ov" id="ageGateOverlay">
@@ -356,10 +356,34 @@
       <div class="auth-divider"><span>or</span></div>
 
       <form id="authForm" onsubmit="handleAuthSubmit(event)">
+        <div id="authSignupFields" style="display:none">
+          <div class="auth-name-row">
+            <div>
+              <label class="clb" style="text-transform:none;letter-spacing:0;color:var(--t2)">First name</label>
+              <input class="pc2" style="margin-top:6px" type="text" id="authFirstName" placeholder="Alex" autocomplete="given-name">
+            </div>
+            <div>
+              <label class="clb" style="text-transform:none;letter-spacing:0;color:var(--t2)">Last name</label>
+              <input class="pc2" style="margin-top:6px" type="text" id="authLastName" placeholder="Rivera" autocomplete="family-name">
+            </div>
+          </div>
+        </div>
+
         <label class="clb" style="text-transform:none;letter-spacing:0;color:var(--t2)">Email</label>
-        <input class="pc2" style="margin-top:6px" type="email" id="authEmail" placeholder="you@example.com" required>
+        <input class="pc2" style="margin-top:6px" type="email" id="authEmail" placeholder="you@example.com" autocomplete="email" required>
+
+        <div id="authSignupFields2" style="display:none">
+          <label class="clb" style="text-transform:none;letter-spacing:0;color:var(--t2);margin-top:14px;display:block">Date of birth</label>
+          <input class="pc2" style="margin-top:6px" type="date" id="authDob" autocomplete="bday">
+          <div class="auth-hint">You must be 21 or older to create an account.</div>
+
+          <label class="clb" style="text-transform:none;letter-spacing:0;color:var(--t2);margin-top:14px;display:block">Phone number <span class="auth-optional">(optional)</span></label>
+          <input class="pc2" style="margin-top:6px" type="tel" id="authPhone" placeholder="(555) 123-4567" autocomplete="tel">
+        </div>
+
         <label class="clb" style="text-transform:none;letter-spacing:0;color:var(--t2);margin-top:14px;display:block">Password</label>
-        <input class="pc2" style="margin-top:6px" type="password" id="authPassword" placeholder="••••••••" minlength="6" required>
+        <input class="pc2" style="margin-top:6px" type="password" id="authPassword" placeholder="••••••••" minlength="6" autocomplete="new-password" required>
+
         <button type="submit" class="btn-hero bh1" style="width:100%;justify-content:center;margin-top:20px" id="authSubmitBtn">Sign in</button>
       </form>
 
@@ -382,10 +406,10 @@
   </div>
 </div>
 
-<script src="legal.js?v=1784727046"></script>
+<script src="legal.js?v=1784727375"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js?v=1784727046"></script>
-<script src="data.js?v=1784727046"></script>
-<script src="app.js?v=1784727046"></script>
+<script src="auth.js?v=1784727375"></script>
+<script src="data.js?v=1784727375"></script>
+<script src="app.js?v=1784727375"></script>
 </body>
 </html>
