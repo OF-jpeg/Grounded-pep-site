@@ -49,15 +49,21 @@ const LEGAL_DOCS = {
     title: 'Privacy Policy',
     html: `
       <h3>What we collect</h3>
-      <p>When you create an account, we collect your email address and, if you sign in with Google, basic profile information (name, email, avatar) as provided by Google. We do not collect payment information unless you subscribe to a paid plan.</p>
+      <p>When you create an account with email and password, we collect your first name, last name, email address, date of birth, and — if provided — your phone number. Date of birth is used solely to verify you meet our 21+ age requirement.</p>
+      <p>If you sign in with Google, we receive your name, email address, and profile picture as provided by Google. We do not collect payment information unless you subscribe to a paid plan.</p>
       <h3>How we use it</h3>
       <ul>
         <li>To authenticate your account and keep you signed in</li>
-        <li>To sync bookmarks and chat history across your devices</li>
-        <li>To send essential account-related communications</li>
+        <li>To verify you meet the 21+ age requirement to use this platform</li>
+        <li>To sync bookmarks, chat history, and preferences across your devices</li>
+        <li>To personalize recommendations (such as suggested compounds or stacks) based on your stated research goals</li>
+        <li>To understand how the platform is used in aggregate — including which compounds, searches, and AI conversations are most common — so we can improve the database and AI Guide</li>
+        <li>To send essential account-related communications, and optional research updates if you opt in</li>
       </ul>
       <h3>AI conversations</h3>
-      <p>Messages sent to the AI Guide are processed by Anthropic's Claude API to generate responses. Conversation history is stored locally in your session and, if signed in, associated with your account for continuity.</p>
+      <p>Messages sent to the AI Guide are processed by Anthropic's Claude API to generate responses. Conversation history is stored, and if signed in, associated with your account for continuity across sessions and devices.</p>
+      <h3>Usage data</h3>
+      <p>We track interactions such as which compound profiles are viewed or bookmarked, which stacks are explored, and search queries entered on the platform. This behavioral data is used in aggregate to improve the product and is not sold to advertisers or third parties.</p>
       <h3>Third parties</h3>
       <p>We use Supabase for authentication and data storage, and Anthropic's API for AI responses. We do not sell your personal data to third parties.</p>
       <h3>Your rights</h3>
