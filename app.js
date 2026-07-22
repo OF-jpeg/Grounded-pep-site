@@ -17,11 +17,11 @@ let actFilter='all', bookmarks=new Set(), chatSessions=[], curChat=0, protoGoal=
       if(p.x<0)p.x=W;if(p.x>W)p.x=0;
       if(p.y<0)p.y=H;if(p.y>H)p.y=0;
       ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,6.28);
-      ctx.fillStyle='hsla('+p.h+',75%,68%,'+p.a+')';ctx.fill();
+      ctx.fillStyle='hsla('+p.h+',40%,82%,'+p.a+')';ctx.fill();
     });
     pts.forEach((p,i)=>pts.slice(i+1).forEach(q=>{
       const d=Math.hypot(p.x-q.x,p.y-q.y);
-      if(d<110){ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.strokeStyle='rgba(59,130,246,'+(1-d/110)*.05+')';ctx.stroke()}
+      if(d<110){ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.strokeStyle='rgba(200,220,255,'+(1-d/110)*.04+')';ctx.stroke()}
     }));
     requestAnimationFrame(draw);
   }
