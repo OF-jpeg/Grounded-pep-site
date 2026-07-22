@@ -281,6 +281,10 @@ footer{border-top:1px solid var(--b1);padding:48px 64px 36px;max-width:1400px;ma
 .auth-hint{font-size:11.5px;color:var(--t3);margin-top:6px;line-height:1.5}
 .auth-optional{color:var(--t3);font-weight:400;text-transform:none;letter-spacing:0}
 .auth-field-error{border-color:rgba(244,63,94,.5) !important}
+.onboard-goals{display:flex;flex-wrap:wrap;gap:8px}
+.onboard-goal-chip{padding:9px 15px;border-radius:50px;font-size:13px;font-weight:500;color:var(--t2);background:var(--g2);border:1px solid var(--b1);cursor:pointer;transition:all .15s}
+.onboard-goal-chip:hover{border-color:var(--b2);color:var(--t1)}
+.onboard-goal-chip.sel{background:#FFFFFF;color:#06101F;border-color:#FFFFFF;font-weight:600}
 
 /* ═══════════ AGE VERIFICATION GATE ═══════════ */
 .agegate-ov{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}

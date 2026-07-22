@@ -7,7 +7,7 @@
 <meta name="description" content="The most intelligent peptide research platform. AI-powered streaming answers, 40+ compounds, protocol builder.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=1784727677">
+<link rel="stylesheet" href="styles.css?v=1784727823">
 </head>
 <body>
 <div class="agegate-ov" id="ageGateOverlay">
@@ -394,6 +394,54 @@
   </div>
 </div>
 
+<div class="auth-ov" id="dobGateOverlay">
+  <div class="auth-modal" style="max-width:420px">
+    <div class="auth-head">
+      <div class="logo-g" style="margin:0 auto 18px">G</div>
+      <div class="auth-title">One more thing</div>
+      <div class="auth-sub">Grounded requires all users to be 21 or older. Please confirm your date of birth to continue.</div>
+    </div>
+    <div class="auth-body">
+      <div id="dobGateError" class="auth-error" style="display:none"></div>
+      <label class="clb" style="text-transform:none;letter-spacing:0;color:var(--t2)">Date of birth</label>
+      <input class="pc2" style="margin-top:6px" type="date" id="dobGateInput">
+      <button class="btn-hero bh1" style="width:100%;justify-content:center;margin-top:20px" id="dobGateBtn" onclick="submitDobGate()">Confirm and continue</button>
+      <button class="agegate-exit" onclick="signOutUser(); document.getElementById('dobGateOverlay').classList.remove('open')" style="margin-top:8px">Sign out instead</button>
+    </div>
+  </div>
+</div>
+
+<div class="auth-ov" id="onboardOverlay">
+  <div class="auth-modal" style="max-width:460px">
+    <div class="auth-head">
+      <div class="logo-g" style="margin:0 auto 18px">G</div>
+      <div class="auth-title">Personalize your experience</div>
+      <div class="auth-sub">Optional — helps us tailor the AI Guide and recommendations to you.</div>
+    </div>
+    <div class="auth-body">
+      <label class="clb" style="text-transform:none;letter-spacing:0;color:var(--t2);margin-bottom:8px;display:block">What's your primary research goal?</label>
+      <div class="onboard-goals" id="onboardGoals">
+        <div class="onboard-goal-chip" data-val="recovery" onclick="selOnboardGoal(this)">🩹 Recovery</div>
+        <div class="onboard-goal-chip" data-val="fatloss" onclick="selOnboardGoal(this)">🔥 Fat loss</div>
+        <div class="onboard-goal-chip" data-val="gh" onclick="selOnboardGoal(this)">⚡ GH optimization</div>
+        <div class="onboard-goal-chip" data-val="cognitive" onclick="selOnboardGoal(this)">🧠 Cognitive</div>
+        <div class="onboard-goal-chip" data-val="longevity" onclick="selOnboardGoal(this)">⏳ Longevity</div>
+        <div class="onboard-goal-chip" data-val="muscle" onclick="selOnboardGoal(this)">💪 Muscle</div>
+      </div>
+
+      <label class="clb" style="text-transform:none;letter-spacing:0;color:var(--t2);margin:18px 0 8px;display:block">Experience level</label>
+      <div class="onboard-goals" id="onboardExp">
+        <div class="onboard-goal-chip" data-val="new" onclick="selOnboardExp(this)">New to peptides</div>
+        <div class="onboard-goal-chip" data-val="some" onclick="selOnboardExp(this)">Some experience</div>
+        <div class="onboard-goal-chip" data-val="experienced" onclick="selOnboardExp(this)">Experienced</div>
+      </div>
+
+      <button class="btn-hero bh1" style="width:100%;justify-content:center;margin-top:22px" onclick="submitOnboarding()">Save and continue</button>
+      <button class="agegate-exit" onclick="skipOnboarding()" style="margin-top:8px">Skip for now</button>
+    </div>
+  </div>
+</div>
+
 <div class="m-ov" id="legalOverlay" onclick="if(event.target.id==='legalOverlay')closeLegal()">
   <div class="modal" style="width:640px">
     <button class="m-x" onclick="closeLegal()">✕</button>
@@ -406,10 +454,10 @@
   </div>
 </div>
 
-<script src="legal.js?v=1784727677"></script>
+<script src="legal.js?v=1784727823"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js?v=1784727677"></script>
-<script src="data.js?v=1784727677"></script>
-<script src="app.js?v=1784727677"></script>
+<script src="auth.js?v=1784727823"></script>
+<script src="data.js?v=1784727823"></script>
+<script src="app.js?v=1784727823"></script>
 </body>
 </html>

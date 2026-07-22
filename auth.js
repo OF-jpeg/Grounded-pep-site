@@ -198,22 +198,131 @@ function updateAuthUI(user) {
   }
 }
 
+// ── Profile completion: DOB gap-fill + onboarding ────────────────────
+function checkProfileCompletion(user) {
+  if (!user) return;
+  const meta = user.user_metadata || {};
+  if (!meta.date_of_birth) {
+    openDobGate();
+    return;
+  }
+  if (!meta.onboarding_completed) {
+    openOnboarding();
+  }
+}
+
+function openDobGate() {
+  document.getElementById('dobGateOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDobGate() {
+  document.getElementById('dobGateOverlay').classList.remove('open');
+}
+
+async function submitDobGate() {
+  const input = document.getElementById('dobGateInput');
+  const dob = input.value;
+  const errEl = document.getElementById('dobGateError');
+  const btn = document.getElementById('dobGateBtn');
+  errEl.style.display = 'none';
+
+  if (!dob) {
+    errEl.textContent = 'Please enter your date of birth.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const age = calcAge(dob);
+  if (age === null) {
+    errEl.textContent = 'Please enter a valid date of birth.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (age < 21) {
+    errEl.textContent = 'You must be 21 or older to use Grounded.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  try {
+    const { data, error } = await sb.auth.updateUser({ data: { date_of_birth: dob } });
+    if (error) throw error;
+    closeDobGate();
+    currentUser = data.user;
+    checkProfileCompletion(data.user);
+  } catch (err) {
+    errEl.textContent = err.message || 'Something went wrong. Please try again.';
+    errEl.style.display = 'block';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Confirm and continue';
+}
+
+let selectedOnboardGoal = null;
+let selectedOnboardExp = null;
+
+function selOnboardGoal(el) {
+  document.querySelectorAll('#onboardGoals .onboard-goal-chip').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedOnboardGoal = el.dataset.val;
+}
+function selOnboardExp(el) {
+  document.querySelectorAll('#onboardExp .onboard-goal-chip').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedOnboardExp = el.dataset.val;
+}
+
+function openOnboarding() {
+  document.getElementById('onboardOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeOnboarding() {
+  document.getElementById('onboardOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function submitOnboarding() {
+  try {
+    await sb.auth.updateUser({
+      data: {
+        research_goal: selectedOnboardGoal,
+        experience_level: selectedOnboardExp,
+        onboarding_completed: true
+      }
+    });
+  } catch (e) {}
+  closeOnboarding();
+  toast('Preferences saved ✓');
+}
+
+async function skipOnboarding() {
+  try {
+    await sb.auth.updateUser({ data: { onboarding_completed: true } });
+  } catch (e) {}
+  closeOnboarding();
+}
+
 // ── Init: restore session + listen for changes ───────────────────────
 (function setupDobBounds() {
-  const dob = document.getElementById('authDob');
-  if (!dob) return;
   const today = new Date();
   const maxDate = today.toISOString().split('T')[0];
   const minYear = today.getFullYear() - 100;
-  dob.max = maxDate;
-  dob.min = `${minYear}-01-01`;
+  ['authDob', 'dobGateInput'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.max = maxDate;
+    el.min = `${minYear}-01-01`;
+  });
 })();
 
 (async function initAuth() {
   const { data: { session } } = await sb.auth.getSession();
   updateAuthUI(session?.user || null);
+  checkProfileCompletion(session?.user || null);
 
   sb.auth.onAuthStateChange((_event, session) => {
     updateAuthUI(session?.user || null);
+    checkProfileCompletion(session?.user || null);
   });
 })();
