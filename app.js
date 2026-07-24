@@ -34,7 +34,7 @@ function show(pg){
   document.querySelectorAll('.nl').forEach(e=>e.classList.remove('on'));
   const el=document.getElementById('page-'+pg);
   if(el) el.classList.add('on');
-  const keys=['home','db','ai','proto','stacks','research','pricing'];
+  const keys=['home','db','ai','proto','stacks','tracker','research','pricing'];
   const idx=keys.indexOf(pg);
   const nls=document.querySelectorAll('.nl');
   if(idx>=0&&nls[idx]) nls[idx].classList.add('on');
@@ -42,6 +42,7 @@ function show(pg){
   if(pg==='db') renderDB();
   if(pg==='stacks') renderStacks();
   if(pg==='research') renderResearch();
+  if(pg==='tracker') renderTracker();
 }
 window.addEventListener('scroll',()=>document.getElementById('mainNav').classList.toggle('scrolled',scrollY>30));
 
@@ -372,6 +373,7 @@ function selGoal(el,goal){
 }
 async function buildProto(){
   if(!protoGoal){toast('Select a goal first');return;}
+  if(!canUseFreeFeature('protocol')){openPaywall();return;}
   const ctx=document.getElementById('protoCtx')?.value||'';
   const res=document.getElementById('protoRes');
   const cont=document.getElementById('protoCont');
@@ -384,6 +386,7 @@ async function buildProto(){
     const d=await r.json();
     const txt=(d.content||[]).map(b=>b.type==='text'?b.text:'').join('');
     cont.innerHTML=rMD(txt);
+    markFreeFeatureUsed('protocol');
   }catch{cont.innerHTML='<em style="color:var(--t3)">Failed to generate protocol. Please try again.</em>';}
 }
 

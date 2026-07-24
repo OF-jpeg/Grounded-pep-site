@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link rel="stylesheet" href="styles.css?v=1784779918">
+<link rel="stylesheet" href="styles.css?v=1784871934">
 </head>
 <body>
 <div class="agegate-ov" id="ageGateOverlay">
@@ -49,6 +49,7 @@
     <button class="nl" onclick="show('ai')">AI Guide</button>
     <button class="nl" onclick="show('proto')">Protocol</button>
     <button class="nl" onclick="show('stacks')">Stacks</button>
+    <button class="nl" onclick="show('tracker')">Tracker</button>
     <button class="nl" onclick="show('research')">Research</button>
     <button class="nl" onclick="show('pricing')">Pricing</button>
   </div>
@@ -208,6 +209,42 @@
   </div>
 </div>
 
+<div class="page" id="page-tracker">
+  <div class="trk-page">
+    <div class="sl">Dose Tracker</div>
+    <h2 class="sh" style="font-size:32px;margin-bottom:8px">Stay on track</h2>
+    <p style="font-size:14px;color:var(--t2);margin-bottom:24px">Log your doses, build a streak, and keep tabs on your vial inventory.</p>
+
+    <div class="trk-stats">
+      <div class="tst"><div class="tst-v" id="streakVal">0</div><div class="tst-l">Day streak</div></div>
+      <div class="tst"><div class="tst-v" id="todayVal">0/0</div><div class="tst-l">Today</div></div>
+      <div class="tst"><div class="tst-v" id="weekVal">0%</div><div class="tst-l">This week</div></div>
+    </div>
+
+    <div class="trk-tabs">
+      <button class="ttab on" onclick="showTrkTab('today',this)">Today</button>
+      <button class="ttab" onclick="showTrkTab('regimen',this)">My Regimen</button>
+      <button class="ttab" onclick="showTrkTab('vials',this)">Vial Inventory</button>
+    </div>
+
+    <div class="trk-panel on" id="trk-today">
+      <div class="week-strip" id="weekStrip"></div>
+      <div class="sh2" style="margin-top:20px">Today's doses</div>
+      <div id="todayList"></div>
+    </div>
+
+    <div class="trk-panel" id="trk-regimen">
+      <button class="btn-hero bh1" onclick="openRegimenModal()">+ Add a dose to your regimen</button>
+      <div id="regimenList" style="margin-top:16px"></div>
+    </div>
+
+    <div class="trk-panel" id="trk-vials">
+      <button class="btn-hero bh1" onclick="openVialModal()">+ Add a vial</button>
+      <div id="vialList" style="margin-top:16px"></div>
+    </div>
+  </div>
+</div>
+
 <div class="page" id="page-research">
   <div class="res-page">
     <div class="sl">Research Hub</div>
@@ -222,6 +259,10 @@
     <div class="sl" style="text-align:center">Pricing</div>
     <h2 class="sh" style="text-align:center">Simple, transparent pricing</h2>
     <p class="ss" style="margin:0 auto;text-align:center">Start free. Upgrade when you need more depth.</p>
+    <div class="billing-toggle">
+      <button class="bt-opt on" id="btMonthly" onclick="setBilling('monthly')">Monthly</button>
+      <button class="bt-opt" id="btAnnual" onclick="setBilling('annual')">Annual <span class="bt-save">Save 34%</span></button>
+    </div>
     <div class="price-cards">
       <div class="price-c">
         <div class="price-n">Free</div>
@@ -233,26 +274,27 @@
           <div class="pf"><span class="pfy">✓</span> Basic AI (10 msgs/day)</div>
           <div class="pf"><span class="pfy">✓</span> Search and filter</div>
           <div class="pf"><span class="pfy">✓</span> Reconstitution calculator</div>
+          <div class="pf"><span class="pfy">✓</span> 1 free Protocol Builder generation</div>
+          <div class="pf"><span class="pfy">✓</span> Browse all curated stacking guides</div>
           <div class="pf"><span class="pfn">✕</span> Full database (80 compounds)</div>
           <div class="pf"><span class="pfn">✕</span> Unlimited streaming AI</div>
-          <div class="pf"><span class="pfn">✕</span> Protocol Builder</div>
-          <div class="pf"><span class="pfn">✕</span> Stack Builder + AI analysis</div>
+          <div class="pf"><span class="pfn">✕</span> Unlimited Protocol Builder</div>
+          <div class="pf"><span class="pfn">✕</span> Dose Tracker cloud sync</div>
           <div class="pf"><span class="pfn">✕</span> Research Hub</div>
-          <div class="pf"><span class="pfn">✕</span> Chat history sync</div>
         </div>
       </div>
       <div class="price-c feat">
         <div class="price-badge">Most Popular</div>
         <div class="price-n">Pro</div>
-        <div class="price-a">$29</div>
-        <div class="price-p">/month · cancel anytime</div>
+        <div class="price-a"><span id="priceAmt">$29</span></div>
+        <div class="price-p" id="pricePer">/month · cancel anytime</div>
         <button class="price-btn pb-pro">Start Pro — 7 days free</button>
         <div class="pfs">
           <div class="pf"><span class="pfy">✓</span> Full database — 80 compounds</div>
           <div class="pf"><span class="pfy">✓</span> Unlimited AI conversations</div>
           <div class="pf"><span class="pfy">✓</span> Real-time token streaming</div>
-          <div class="pf"><span class="pfy">✓</span> Protocol Builder (AI-powered)</div>
-          <div class="pf"><span class="pfy">✓</span> Stack Builder + AI analysis</div>
+          <div class="pf"><span class="pfy">✓</span> Unlimited Protocol Builder</div>
+          <div class="pf"><span class="pfy">✓</span> Dose Tracker cloud sync</div>
           <div class="pf"><span class="pfy">✓</span> Full Research Hub</div>
           <div class="pf"><span class="pfy">✓</span> Unlimited bookmarks + history</div>
           <div class="pf"><span class="pfy">✓</span> Markdown + tables in AI</div>
@@ -340,6 +382,84 @@
     </div>
   </div>
 </div>
+<div class="auth-ov" id="regimenModal">
+  <div class="auth-modal" style="max-width:420px">
+    <div class="auth-head">
+      <div class="auth-title" id="regimenModalTitle">Add a dose</div>
+      <div class="auth-sub">Add a peptide you take regularly so Grounded can track it daily.</div>
+    </div>
+    <div class="auth-body">
+      <label class="clb" style="text-transform:none;letter-spacing:0;color:var(--t2)">Peptide name</label>
+      <input class="pc2" style="margin-top:6px" type="text" id="regPeptide" placeholder="e.g. BPC-157" list="regPeptideList">
+      <datalist id="regPeptideList"></datalist>
+      <label class="clb" style="text-transform:none;letter-spacing:0;color:var(--t2);margin-top:14px;display:block">Dose amount</label>
+      <input class="pc2" style="margin-top:6px" type="text" id="regDose" placeholder="e.g. 250 mcg">
+      <label class="clb" style="text-transform:none;letter-spacing:0;color:var(--t2);margin-top:14px;display:block">Time of day</label>
+      <input class="pc2" style="margin-top:6px" type="time" id="regTime">
+      <button class="btn-hero bh1" style="width:100%;justify-content:center;margin-top:20px" onclick="saveRegimenItem()">Save dose</button>
+      <button class="agegate-exit" onclick="closeRegimenModal()" style="margin-top:8px">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="auth-ov" id="vialModal">
+  <div class="auth-modal" style="max-width:460px">
+    <div class="auth-head">
+      <div class="auth-title">Add a vial</div>
+      <div class="auth-sub">Track inventory and see your real cost per dose.</div>
+    </div>
+    <div class="auth-body">
+      <label class="clb" style="text-transform:none;letter-spacing:0;color:var(--t2)">Peptide name</label>
+      <input class="pc2" style="margin-top:6px" type="text" id="vialPeptide" placeholder="e.g. BPC-157" list="regPeptideList">
+      <div class="auth-name-row" style="margin-top:14px">
+        <div>
+          <label class="clb" style="text-transform:none;letter-spacing:0;color:var(--t2)">Total (mg)</label>
+          <input class="pc2" style="margin-top:6px" type="number" id="vialMg" placeholder="5" oninput="calcVialCost()">
+        </div>
+        <div>
+          <label class="clb" style="text-transform:none;letter-spacing:0;color:var(--t2)">BAC water (ml)</label>
+          <input class="pc2" style="margin-top:6px" type="number" id="vialWater" placeholder="2" oninput="calcVialCost()">
+        </div>
+      </div>
+      <div class="auth-name-row" style="margin-top:14px">
+        <div>
+          <label class="clb" style="text-transform:none;letter-spacing:0;color:var(--t2)">Vial cost ($)</label>
+          <input class="pc2" style="margin-top:6px" type="number" id="vialCost" placeholder="45" oninput="calcVialCost()">
+        </div>
+        <div>
+          <label class="clb" style="text-transform:none;letter-spacing:0;color:var(--t2)">Your dose (mcg)</label>
+          <input class="pc2" style="margin-top:6px" type="number" id="vialDose" placeholder="250" oninput="calcVialCost()">
+        </div>
+      </div>
+      <div class="vial-calc-out" id="vialCalcOut" style="display:none">
+        <div class="vial-calc-row"><span>Doses per vial</span><strong id="vcDoses">—</strong></div>
+        <div class="vial-calc-row"><span>Cost per dose</span><strong id="vcCost">—</strong></div>
+      </div>
+      <label class="clb" style="text-transform:none;letter-spacing:0;color:var(--t2);margin-top:14px;display:block">Expiration date <span class="auth-optional">(optional)</span></label>
+      <input class="pc2" style="margin-top:6px" type="date" id="vialExp">
+      <button class="btn-hero bh1" style="width:100%;justify-content:center;margin-top:20px" onclick="saveVial()">Save vial</button>
+      <button class="agegate-exit" onclick="closeVialModal()" style="margin-top:8px">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="paywall-ov" id="paywallOverlay" onclick="if(event.target.id==='paywallOverlay')closePaywall()">
+  <div class="paywall-modal">
+    <button class="paywall-close" onclick="closePaywall()">✕</button>
+    <div class="paywall-icon">✦</div>
+    <div class="paywall-title" id="paywallTitle">You've used your free generation</div>
+    <div class="paywall-sub" id="paywallSub">Upgrade to Pro for unlimited access to the Protocol Builder and every other feature on Grounded.</div>
+    <div class="paywall-features">
+      <div class="pf"><span class="pfy">✓</span> Unlimited Protocol Builder</div>
+      <div class="pf"><span class="pfy">✓</span> Full 80-compound database</div>
+      <div class="pf"><span class="pfy">✓</span> Unlimited AI conversations</div>
+      <div class="pf"><span class="pfy">✓</span> Dose tracker cloud sync</div>
+    </div>
+    <button class="paywall-cta" onclick="show('pricing');closePaywall()">See Pro plans — 7 days free</button>
+    <button class="paywall-dismiss" onclick="closePaywall()">Maybe later</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <div class="auth-ov" id="authOverlay" onclick="handleAuthMO(event)">
@@ -459,10 +579,12 @@
   </div>
 </div>
 
-<script src="legal.js?v=1784779918"></script>
+<script src="legal.js?v=1784871934"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js?v=1784779918"></script>
-<script src="data.js?v=1784779918"></script>
-<script src="app.js?v=1784779918"></script>
+<script src="auth.js?v=1784871934"></script>
+<script src="billing.js?v=1784871934"></script>
+<script src="tracker.js?v=1784871934"></script>
+<script src="data.js?v=1784871934"></script>
+<script src="app.js?v=1784871934"></script>
 </body>
 </html>
