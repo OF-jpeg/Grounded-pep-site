@@ -379,3 +379,9 @@ footer{border-top:1px solid var(--b1);padding:48px 64px 36px;max-width:1400px;ma
 .vial-calc-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--t2)}
 .vial-calc-row strong{color:var(--t1);font-family:var(--fd);font-size:15px}
 
+
+/* ═══════════ PERSONALIZED RECOMMENDATIONS ═══════════ */
+.rec-sec{padding:0 64px 40px;max-width:1400px;margin:0 auto}
+.rec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:24px;flex-wrap:wrap}
+.rec-head .btn-hero{padding:10px 20px;font-size:14px;flex-shrink:0}
+@media(max-width:1100px){.rec-sec{padding-left:32px;padding-right:32px}}

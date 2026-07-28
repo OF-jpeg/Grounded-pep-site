@@ -204,6 +204,8 @@ function updateAuthUI(user) {
     signUpBtn.style.display = '';
     userChip.style.display = 'none';
   }
+  // Refresh goal-based homepage recommendations for this user
+  if (typeof renderRecommendations === 'function') renderRecommendations();
 }
 
 // ── Profile completion: DOB gap-fill + onboarding ────────────────────
@@ -292,15 +294,18 @@ function closeOnboarding() {
 
 async function submitOnboarding() {
   try {
-    await sb.auth.updateUser({
+    const { data, error } = await sb.auth.updateUser({
       data: {
         research_goal: selectedOnboardGoal,
         experience_level: selectedOnboardExp,
         onboarding_completed: true
       }
     });
+    // Refresh local user so personalization applies immediately
+    if (!error && data?.user) currentUser = data.user;
   } catch (e) {}
   closeOnboarding();
+  if (typeof renderRecommendations === 'function') renderRecommendations();
   toast('Preferences saved ✓');
 }
 

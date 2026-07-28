@@ -43,6 +43,8 @@ function show(pg){
   if(pg==='stacks') renderStacks();
   if(pg==='research') renderResearch();
   if(pg==='tracker') renderTracker();
+  if(pg==='proto') prefillProtoGoal();
+  if(pg==='home') renderRecommendations();
 }
 window.addEventListener('scroll',()=>document.getElementById('mainNav').classList.toggle('scrolled',scrollY>30));
 
@@ -85,20 +87,71 @@ function renderDB(){
   const grid=document.getElementById('dbGrid');
   if(!grid) return;
   if(!list.length){grid.innerHTML='<div class="db-empty"><div style="font-size:48px;margin-bottom:16px">🔬</div><div style="font-family:var(--fd);font-size:22px;color:var(--t1);margin-bottom:8px">No compounds found</div><p>Try adjusting your search or filter.</p></div>';return}
-  grid.innerHTML=list.map(p=>{
-    const c=CATS[p.cat]||{l:p.cat,c:'#fff',bg:'rgba(255,255,255,.08)',b:'rgba(255,255,255,.2)'};
-    const bm=bookmarks.has(p.id);
-    return '<div class="pc" onclick="openM(\''+p.id+'\')">'
-      +'<div class="pc-top"><span class="badge" style="background:'+c.bg+';border:1px solid '+c.b+';color:'+c.c+'">'+c.l+'</span>'
-      +'<button class="bm'+(bm?' on':'')+ '" onclick="toggleBm(event,\''+p.id+'\')">'+(bm?'★':'☆')+'</button></div>'
-      +'<div class="pc-name">'+p.n+'</div><div class="pc-fn">'+p.fn+'</div>'
-      +'<div class="pc-desc">'+p.ov+'</div>'
-      +'<div class="pc-meta">'
-      +'<div class="pcm"><div class="pcm-l">Half-life</div><div class="pcm-v">'+p.hl+'</div></div>'
-      +'<div class="pcm"><div class="pcm-l">Route</div><div class="pcm-v">'+p.admin.split(' · ')[0]+'</div></div>'
-      +'<div class="pcm"><div class="pcm-l">Status</div><div class="pcm-v">'+p.status.split(' ')[0]+'</div></div>'
-      +'</div></div>';
-  }).join('');
+  grid.innerHTML=list.map(pepCardHTML).join('');
+}
+
+// Shared peptide card markup, used by both the database grid and recommendations
+function pepCardHTML(p){
+  const c=CATS[p.cat]||{l:p.cat,c:'#fff',bg:'rgba(255,255,255,.08)',b:'rgba(255,255,255,.2)'};
+  const bm=bookmarks.has(p.id);
+  return '<div class="pc" onclick="openM(\''+p.id+'\')">'
+    +'<div class="pc-top"><span class="badge" style="background:'+c.bg+';border:1px solid '+c.b+';color:'+c.c+'">'+c.l+'</span>'
+    +'<button class="bm'+(bm?' on':'')+ '" onclick="toggleBm(event,\''+p.id+'\')">'+(bm?'★':'☆')+'</button></div>'
+    +'<div class="pc-name">'+p.n+'</div><div class="pc-fn">'+p.fn+'</div>'
+    +'<div class="pc-desc">'+p.ov+'</div>'
+    +'<div class="pc-meta">'
+    +'<div class="pcm"><div class="pcm-l">Half-life</div><div class="pcm-v">'+p.hl+'</div></div>'
+    +'<div class="pcm"><div class="pcm-l">Route</div><div class="pcm-v">'+p.admin.split(' · ')[0]+'</div></div>'
+    +'<div class="pcm"><div class="pcm-l">Status</div><div class="pcm-v">'+p.status.split(' ')[0]+'</div></div>'
+    +'</div></div>';
+}
+
+// ── Personalized homepage recommendations ────────────────────────────
+function renderRecommendations(){
+  const sec=document.getElementById('recSection');
+  if(!sec) return;
+  const meta=(typeof currentUser!=='undefined'&&currentUser)?(currentUser.user_metadata||{}):{};
+  const goal=meta.research_goal;
+  const cats=GOAL_TO_CATS[goal];
+  if(!goal||!cats){sec.style.display='none';return;}
+
+  const matches=PEPS.filter(p=>cats.includes(p.cat)).sort((a,b)=>b.pop-a.pop).slice(0,4);
+  if(!matches.length){sec.style.display='none';return;}
+
+  const firstName=meta.first_name?(', '+meta.first_name):'';
+  document.getElementById('recEyebrow').textContent='Recommended for you';
+  document.getElementById('recTitle').textContent=GOAL_LABELS[goal];
+  document.getElementById('recSub').textContent='The most-researched compounds matching your goal'+firstName+'.';
+  document.getElementById('recGrid').innerHTML=matches.map(pepCardHTML).join('');
+  sec.style.display='block';
+}
+
+// Pre-select the user's onboarding goal in the Protocol Builder (once per visit)
+function prefillProtoGoal(){
+  if(protoGoal) return; // don't override an active selection
+  const meta=(typeof currentUser!=='undefined'&&currentUser)?(currentUser.user_metadata||{}):{};
+  const goal=meta.research_goal;
+  if(!goal) return;
+  const chips=document.querySelectorAll('#protoGoals .gc2');
+  chips.forEach(chip=>{
+    const oc=chip.getAttribute('onclick')||'';
+    if(oc.includes("'"+goal+"'")) chip.click();
+  });
+}
+
+// Jump to the database pre-filtered to the user's goal category
+function viewGoalCategory(){
+  const meta=(typeof currentUser!=='undefined'&&currentUser)?(currentUser.user_metadata||{}):{};
+  const cats=GOAL_TO_CATS[meta.research_goal];
+  show('db');
+  if(!cats||!cats.length) return;
+  setTimeout(()=>{
+    const chips=document.querySelectorAll('.fch');
+    const targetLabel=(CATS[cats[0]]||{}).l;
+    chips.forEach(chip=>{
+      if(chip.textContent.trim()===targetLabel) chip.click();
+    });
+  },60);
 }
 function toggleBm(e,id){
   e.stopPropagation();
@@ -244,6 +297,59 @@ Communication principles:
 - Respond naturally and conversationally, never scripted
 - Adapt depth to the complexity of the question`;
 
+// Maps onboarding goal values -> database category keys
+const GOAL_TO_CATS={
+  recovery:['healing'],
+  fatloss:['fatloss','metabolic'],
+  gh:['gh'],
+  cognitive:['cognitive'],
+  longevity:['longevity'],
+  muscle:['muscle']
+};
+const GOAL_LABELS={
+  recovery:'Recovery & Healing',
+  fatloss:'Fat Loss',
+  gh:'Growth Hormone Optimization',
+  cognitive:'Cognitive Enhancement',
+  longevity:'Longevity & Anti-Aging',
+  muscle:'Muscle & Performance'
+};
+const EXP_GUIDANCE={
+  new:`This person is NEW to peptides. Assume no prior background knowledge.
+- Define technical terms the first time you use them (e.g. "subcutaneous (just under the skin)")
+- Lead with plain-language analogies before mechanism detail
+- Keep responses shorter and focused on the practical takeaway
+- Proactively mention safety basics and the value of professional guidance
+- Never assume they know what reconstitution, half-life, or a secretagogue is`,
+  some:`This person has SOME experience with peptides. Assume working familiarity with basics.
+- You can use common terms (subQ, half-life, reconstitution) without defining them
+- Go one level deeper into mechanism than you would for a beginner
+- Still explain less common pathways and receptor names when introduced`,
+  experienced:`This person is EXPERIENCED with peptides. Assume strong background knowledge.
+- Skip basic definitions entirely — get straight to substance
+- Use precise pharmacological terminology freely
+- Go deep on mechanism, receptor selectivity, pharmacokinetics, and nuance
+- Prioritize signal over hand-holding; they want depth, not reassurance
+- Still flag genuine safety concerns, but without over-caveating`
+};
+
+// Builds the system prompt, layering in personalization when available
+function getSYS(){
+  let prompt=SYS;
+  const meta=(typeof currentUser!=='undefined'&&currentUser)?(currentUser.user_metadata||{}):{};
+  const exp=meta.experience_level;
+  const goal=meta.research_goal;
+  if(!exp&&!goal) return prompt;
+
+  prompt+='\n\n--- PERSONALIZATION FOR THIS USER ---';
+  if(exp&&EXP_GUIDANCE[exp]) prompt+='\n\n'+EXP_GUIDANCE[exp];
+  if(goal&&GOAL_LABELS[goal]){
+    prompt+=`\n\nTheir stated primary research goal is: ${GOAL_LABELS[goal]}. When a question is open-ended or they ask for recommendations, weight your answer toward this goal — but never ignore or deflect questions about other areas.`;
+  }
+  prompt+='\n\nApply this naturally. Never announce that you are adjusting to their experience level or goal.';
+  return prompt;
+}
+
 function initAI(){
   if(!chatSessions.length){
     chatSessions=[{id:0,title:'New conversation',msgs:[]}];
@@ -326,7 +432,7 @@ async function sendAI(){
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2048,stream:true,system:SYS,messages:history})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2048,stream:true,system:getSYS(),messages:history})
     });
     document.getElementById('aiTyping').classList.remove('show');
     innerEl=addBub('ai','',true);
@@ -382,7 +488,7 @@ async function buildProto(){
   const goals={recovery:'Recovery and Healing',fatloss:'Fat Loss and Body Composition',gh:'Growth Hormone Optimization',cognitive:'Cognitive Enhancement',longevity:'Longevity and Anti-Aging',muscle:'Muscle Growth and Performance'};
   const prompt='Build a comprehensive educational research protocol for: '+goals[protoGoal]+(ctx?'. Context: '+ctx:'')+'.\n\nInclude:\n1. **Recommended compounds** with specific dosage ranges\n2. **Protocol timeline** week-by-week for the first 8 weeks\n3. **Mechanism of synergy** between chosen compounds\n4. **Key considerations** and safety notes\n5. **Suggested further reading**\n\nBe thorough, format with headers, and note this is for educational purposes only.';
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,system:SYS,messages:[{role:'user',content:prompt}]})});
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,system:getSYS(),messages:[{role:'user',content:prompt}]})});
     const d=await r.json();
     const txt=(d.content||[]).map(b=>b.type==='text'?b.text:'').join('');
     cont.innerHTML=rMD(txt);
