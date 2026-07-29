@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-<link rel="stylesheet" href="styles.css?v=1785205985">
+<link rel="stylesheet" href="styles.css?v=1785289453">
 </head>
 <body>
 <div class="agegate-ov" id="ageGateOverlay">
@@ -65,7 +65,7 @@
     </button>
     <div class="user-chip" id="navUserChip" style="display:none" onclick="toggleUserMenu()">
       <div class="user-chip-avatar" id="userChipAvatar">U</div>
-      <span id="userChipName">User</span>
+      <span id="userChipName">User</span><span class="pro-badge" id="proBadge" style="display:none">PRO</span>
       <div class="user-menu" id="userMenu">
         <div class="user-menu-email" id="userMenuEmail"></div>
         <button class="user-menu-item" onclick="signOutUser()">Sign out</button>
@@ -188,7 +188,8 @@
           <textarea class="ai-inp" id="aiInp" placeholder="Ask anything about peptides, mechanisms, protocols…" rows="1" onkeydown="aiKey(event)" oninput="autoR(this)"></textarea>
           <button class="ai-send" id="aiSend" onclick="sendAI()">↑</button>
         </div>
-        <div style="font-size:11px;color:var(--t3);margin-top:8px;text-align:center">Educational information only · Not medical advice · Enter to send</div>
+        <div class="ai-quota" id="aiQuota"></div>
+        <div style="font-size:11px;color:var(--t3);margin-top:6px;text-align:center">Educational information only · Not medical advice · Enter to send</div>
       </div>
     </div>
   </div>
@@ -596,12 +597,12 @@
   </div>
 </div>
 
-<script src="legal.js?v=1785205985"></script>
+<script src="legal.js?v=1785289453"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js?v=1785205985"></script>
-<script src="billing.js?v=1785205985"></script>
-<script src="tracker.js?v=1785205985"></script>
-<script src="data.js?v=1785205985"></script>
-<script src="app.js?v=1785205985"></script>
+<script src="auth.js?v=1785289453"></script>
+<script src="billing.js?v=1785289453"></script>
+<script src="tracker.js?v=1785289453"></script>
+<script src="data.js?v=1785289453"></script>
+<script src="app.js?v=1785289453"></script>
 </body>
 </html>

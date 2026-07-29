@@ -1,73 +1,144 @@
 // ══════════════════════════════════════════════
-//  GROUNDED — BILLING TOGGLE + FREE-FEATURE GATING
+//  GROUNDED — PLANS, LIMITS & PAYWALL
 // ══════════════════════════════════════════════
-// Note: no payment processor is wired up yet — "Start Pro" currently
-// routes to the pricing page. This handles the monthly/annual price
-// display and the soft paywall that gates free-tier feature usage.
+// IMPORTANT: this is client-side gating only. It shapes the experience
+// and drives upgrade prompts, but it is NOT security — a determined user
+// can bypass it via devtools. Real enforcement requires server-side
+// checks, which land alongside Stripe + Supabase Edge Functions.
+//
+// Until a payment processor is connected, isPro() is driven entirely by
+// the `is_pro` flag on a user's Supabase metadata, which can be set
+// manually from the Supabase dashboard to comp early users.
 
 const MONTHLY_PRICE = 29;
 const ANNUAL_MONTHLY_PRICE = 19; // billed annually at $228/yr
 
-function setBilling(period) {
-  const monthlyBtn = document.getElementById('btMonthly');
-  const annualBtn = document.getElementById('btAnnual');
-  const amt = document.getElementById('priceAmt');
-  const per = document.getElementById('pricePer');
-  if (!monthlyBtn || !annualBtn) return;
+const FREE_LIMITS = {
+  compounds: 15,     // most-popular compounds openable on the free plan
+  aiPerDay: 10,      // AI Guide messages per rolling day
+  protocolTotal: 1   // lifetime free Protocol Builder generations
+};
 
-  if (period === 'annual') {
-    monthlyBtn.classList.remove('on');
-    annualBtn.classList.add('on');
-    amt.textContent = '$' + ANNUAL_MONTHLY_PRICE;
-    per.textContent = '/month · billed $' + (ANNUAL_MONTHLY_PRICE * 12) + '/year';
-  } else {
-    annualBtn.classList.remove('on');
-    monthlyBtn.classList.add('on');
-    amt.textContent = '$' + MONTHLY_PRICE;
-    per.textContent = '/month · cancel anytime';
-  }
-}
-
-// ── Free-feature usage tracking ──────────────────────────────────────
-// Tracks a single free generation per feature (currently: 'protocol').
-// Checks localStorage first for instant response; if signed in, also
-// checks Supabase user_metadata so the limit follows the account
-// across devices rather than just the browser.
-
+// ── Plan state ────────────────────────────────────────────────────────
 function isPro() {
-  // No billing processor connected yet — always false until Stripe is wired up.
-  // Once connected, this should check currentUser?.user_metadata?.is_pro.
-  return (typeof currentUser !== 'undefined' && currentUser?.user_metadata?.is_pro) === true;
+  if (typeof currentUser === 'undefined' || !currentUser) return false;
+  return (currentUser.user_metadata || {}).is_pro === true;
 }
 
+// Compound IDs available on the free plan (top N by popularity)
+function freeCompoundIds() {
+  if (typeof PEPS === 'undefined') return [];
+  return PEPS.slice()
+    .sort(function (a, b) { return b.pop - a.pop; })
+    .slice(0, FREE_LIMITS.compounds)
+    .map(function (p) { return p.id; });
+}
+function canOpenCompound(id) {
+  if (isPro()) return true;
+  return freeCompoundIds().indexOf(id) !== -1;
+}
+
+// ── Daily AI message counter ──────────────────────────────────────────
+function todayKey() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function getAiUsedToday() {
+  try {
+    var raw = localStorage.getItem('grounded_ai_usage');
+    if (!raw) return 0;
+    var data = JSON.parse(raw);
+    return data.date === todayKey() ? (data.count || 0) : 0;
+  } catch (e) { return 0; }
+}
+function incrementAiUsage() {
+  try {
+    localStorage.setItem('grounded_ai_usage', JSON.stringify({ date: todayKey(), count: getAiUsedToday() + 1 }));
+  } catch (e) {}
+  updateAiQuotaUI();
+}
+function aiMessagesRemaining() {
+  if (isPro()) return Infinity;
+  return Math.max(0, FREE_LIMITS.aiPerDay - getAiUsedToday());
+}
+function canSendAiMessage() {
+  return isPro() || aiMessagesRemaining() > 0;
+}
+function updateAiQuotaUI() {
+  var el = document.getElementById('aiQuota');
+  if (!el) return;
+  if (isPro()) { el.style.display = 'none'; return; }
+  var left = aiMessagesRemaining();
+  el.style.display = '';
+  el.innerHTML = left > 0
+    ? left + ' of ' + FREE_LIMITS.aiPerDay + " free messages left today · <a onclick=\"show('pricing')\">Upgrade</a>"
+    : "Daily limit reached · <a onclick=\"show('pricing')\">Upgrade for unlimited</a>";
+}
+
+// ── One-time free feature usage (Protocol Builder) ────────────────────
 function canUseFreeFeature(feature) {
   if (isPro()) return true;
-  const key = 'grounded_free_used_' + feature;
-  const usedLocally = localStorage.getItem(key) === 'true';
-  if (usedLocally) return false;
+  var key = 'grounded_free_used_' + feature;
+  if (localStorage.getItem(key) === 'true') return false;
   if (typeof currentUser !== 'undefined' && currentUser) {
-    const meta = currentUser.user_metadata || {};
-    if (meta[key] === true) return false;
+    if ((currentUser.user_metadata || {})[key] === true) return false;
   }
   return true;
 }
-
 async function markFreeFeatureUsed(feature) {
-  const key = 'grounded_free_used_' + feature;
+  var key = 'grounded_free_used_' + feature;
   try { localStorage.setItem(key, 'true'); } catch (e) {}
   if (typeof currentUser !== 'undefined' && currentUser && typeof sb !== 'undefined') {
-    try {
-      await sb.auth.updateUser({ data: { [key]: true } });
-    } catch (e) {}
+    try { await sb.auth.updateUser({ data: { [key]: true } }); } catch (e) {}
   }
 }
 
-// ── Paywall modal ─────────────────────────────────────────────────────
-function openPaywall() {
+// ── Contextual paywall ────────────────────────────────────────────────
+var PAYWALL_COPY = {
+  compound: {
+    title: 'This compound is Pro-only',
+    sub: 'The free plan includes the ' + FREE_LIMITS.compounds + ' most-researched compounds. Upgrade to unlock the full database.'
+  },
+  ai: {
+    title: "You've hit today's message limit",
+    sub: 'Free accounts get ' + FREE_LIMITS.aiPerDay + ' AI messages per day. Upgrade for unlimited conversations.'
+  },
+  protocol: {
+    title: "You've used your free generation",
+    sub: 'Upgrade to Pro for unlimited access to the Protocol Builder and every other feature on Grounded.'
+  },
+  research: {
+    title: 'Research Hub is Pro-only',
+    sub: 'Get curated research summaries and plain-language breakdowns of the latest peptide science.'
+  },
+  tracker: {
+    title: 'Cloud sync is Pro-only',
+    sub: 'Your tracker works locally on the free plan. Upgrade to sync doses and vials across all your devices.'
+  }
+};
+
+function openPaywall(context) {
+  var copy = PAYWALL_COPY[context] || PAYWALL_COPY.protocol;
+  var t = document.getElementById('paywallTitle');
+  var s = document.getElementById('paywallSub');
+  if (t) t.textContent = copy.title;
+  if (s) s.textContent = copy.sub;
   document.getElementById('paywallOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 function closePaywall() {
   document.getElementById('paywallOverlay').classList.remove('open');
   document.body.style.overflow = '';
+}
+
+// ── Reflect plan state across the UI ──────────────────────────────────
+function applyPlanUI() {
+  var pro = isPro();
+  var badge = document.getElementById('proBadge');
+  if (badge) badge.style.display = pro ? '' : 'none';
+  var getProBtn = document.querySelector('.btn-pro');
+  if (getProBtn) getProBtn.style.display = pro ? 'none' : '';
+  updateAiQuotaUI();
+  if (typeof renderDB === 'function' && document.getElementById('dbGrid')) renderDB();
+  if (typeof renderResearch === 'function') renderResearch();
 }

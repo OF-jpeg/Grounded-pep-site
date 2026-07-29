@@ -45,6 +45,7 @@ function show(pg){
   if(pg==='tracker') renderTracker();
   if(pg==='proto') prefillProtoGoal();
   if(pg==='home') renderRecommendations();
+  if(pg==='ai'&&typeof updateAiQuotaUI==='function') updateAiQuotaUI();
 }
 window.addEventListener('scroll',()=>document.getElementById('mainNav').classList.toggle('scrolled',scrollY>30));
 
@@ -94,6 +95,19 @@ function renderDB(){
 function pepCardHTML(p){
   const c=CATS[p.cat]||{l:p.cat,c:'#fff',bg:'rgba(255,255,255,.08)',b:'rgba(255,255,255,.2)'};
   const bm=bookmarks.has(p.id);
+  const locked=(typeof canOpenCompound==='function')&&!canOpenCompound(p.id);
+  if(locked){
+    return '<div class="pc pc-locked" onclick="openPaywall(\'compound\')">'
+      +'<div class="pc-lock-badge">🔒 Pro</div>'
+      +'<div class="pc-top"><span class="badge" style="background:'+c.bg+';border:1px solid '+c.b+';color:'+c.c+'">'+c.l+'</span></div>'
+      +'<div class="pc-name">'+p.n+'</div><div class="pc-fn">'+p.fn+'</div>'
+      +'<div class="pc-desc pc-blur">'+p.ov+'</div>'
+      +'<div class="pc-meta">'
+      +'<div class="pcm"><div class="pcm-l">Half-life</div><div class="pcm-v pc-blur">'+p.hl+'</div></div>'
+      +'<div class="pcm"><div class="pcm-l">Route</div><div class="pcm-v pc-blur">'+p.admin.split(' · ')[0]+'</div></div>'
+      +'<div class="pcm"><div class="pcm-l">Status</div><div class="pcm-v pc-blur">'+p.status.split(' ')[0]+'</div></div>'
+      +'</div></div>';
+  }
   return '<div class="pc" onclick="openM(\''+p.id+'\')">'
     +'<div class="pc-top"><span class="badge" style="background:'+c.bg+';border:1px solid '+c.b+';color:'+c.c+'">'+c.l+'</span>'
     +'<button class="bm'+(bm?' on':'')+ '" onclick="toggleBm(event,\''+p.id+'\')">'+(bm?'★':'☆')+'</button></div>'
@@ -163,6 +177,12 @@ function toggleBm(e,id){
 // MODAL
 function openM(id){
   const p=PEPS.find(x=>x.id===id);if(!p) return;
+  // Gate Pro-only compounds (also reachable via related-compound links)
+  if(typeof canOpenCompound==='function'&&!canOpenCompound(id)){
+    closeM();
+    openPaywall('compound');
+    return;
+  }
   curModal=id;
   const c=CATS[p.cat]||{l:p.cat,c:'#fff',bg:'rgba(255,255,255,.08)',b:'rgba(255,255,255,.2)'};
   document.getElementById('mBadge').innerHTML='<span style="background:'+c.bg+';border:1px solid '+c.b+';color:'+c.c+';font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;padding:3px 9px;border-radius:50px;display:inline-block;margin-bottom:14px">'+c.l+'</span>';
@@ -223,13 +243,27 @@ function renderStacks(){
 // RESEARCH HUB
 function renderResearch(){
   const grid=document.getElementById('resGrid');
-  if(!grid||grid.children.length) return;
-  grid.innerHTML=RESEARCH_DATA.map(r=>'<div class="rc">'
-    +'<div class="rc-m"><span class="rc-c" style="background:rgba(255,255,255,.05);border:1px solid var(--b1);color:'+r.catC+'">'+r.cat+'</span><span class="rc-d">'+r.date+'</span></div>'
-    +'<div class="rc-t">'+r.title+'</div>'
-    +'<div class="rc-a">'+r.abstract+'</div>'
-    +'<div class="rc-f"><span class="rc-j">'+r.journal+'</span><span class="rc-link" onclick="askResearch(\''+r.title.replace(/'/g,"\\'") +'\')">Ask AI →</span></div>'
-    +'</div>').join('');
+  if(!grid) return;
+  const pro=(typeof isPro==='function')?isPro():false;
+  grid.innerHTML=RESEARCH_DATA.map((r,i)=>{
+    // Free plan gets the first article as a preview; the rest are locked
+    const locked=!pro&&i>0;
+    if(locked){
+      return '<div class="rc rc-locked" onclick="openPaywall(\'research\')">'
+        +'<div class="pc-lock-badge">🔒 Pro</div>'
+        +'<div class="rc-m"><span class="rc-c" style="background:rgba(255,255,255,.05);border:1px solid var(--b1);color:'+r.catC+'">'+r.cat+'</span><span class="rc-d">'+r.date+'</span></div>'
+        +'<div class="rc-t">'+r.title+'</div>'
+        +'<div class="rc-a pc-blur">'+r.abstract+'</div>'
+        +'<div class="rc-f"><span class="rc-j">'+r.journal+'</span><span class="rc-link">Unlock →</span></div>'
+        +'</div>';
+    }
+    return '<div class="rc">'
+      +'<div class="rc-m"><span class="rc-c" style="background:rgba(255,255,255,.05);border:1px solid var(--b1);color:'+r.catC+'">'+r.cat+'</span><span class="rc-d">'+r.date+'</span></div>'
+      +'<div class="rc-t">'+r.title+'</div>'
+      +'<div class="rc-a">'+r.abstract+'</div>'
+      +'<div class="rc-f"><span class="rc-j">'+r.journal+'</span><span class="rc-link" onclick="askResearch(\''+r.title.replace(/'/g,"\\'") +'\')">Ask AI →</span></div>'
+      +'</div>';
+  }).join('');
 }
 function askResearch(title){
   show('ai');
@@ -411,8 +445,14 @@ async function sendAI(){
   const inp=document.getElementById('aiInp');
   const msg=inp.value.trim();
   if(!msg) return;
+  // Enforce free-plan daily message limit
+  if(typeof canSendAiMessage==='function'&&!canSendAiMessage()){
+    openPaywall('ai');
+    return;
+  }
   const btn=document.getElementById('aiSend');
   const sugg=document.getElementById('aiSugg');
+  if(typeof incrementAiUsage==='function') incrementAiUsage();
   if(!chatSessions[curChat]) chatSessions[curChat]={id:Date.now(),title:'New conversation',msgs:[]};
   chatSessions[curChat].msgs.push({role:'user',content:msg});
   if(chatSessions[curChat].title==='New conversation'){
@@ -479,7 +519,7 @@ function selGoal(el,goal){
 }
 async function buildProto(){
   if(!protoGoal){toast('Select a goal first');return;}
-  if(!canUseFreeFeature('protocol')){openPaywall();return;}
+  if(!canUseFreeFeature('protocol')){openPaywall('protocol');return;}
   const ctx=document.getElementById('protoCtx')?.value||'';
   const res=document.getElementById('protoRes');
   const cont=document.getElementById('protoCont');

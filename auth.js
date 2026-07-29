@@ -206,6 +206,8 @@ function updateAuthUI(user) {
   }
   // Refresh goal-based homepage recommendations for this user
   if (typeof renderRecommendations === 'function') renderRecommendations();
+  // Reflect Pro/Free plan state across gated UI
+  if (typeof applyPlanUI === 'function') applyPlanUI();
 }
 
 // ── Profile completion: DOB gap-fill + onboarding ────────────────────
