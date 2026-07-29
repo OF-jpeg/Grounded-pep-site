@@ -367,6 +367,31 @@ const EXP_GUIDANCE={
 - Still flag genuine safety concerns, but without over-caveating`
 };
 
+// ── Claude API access ─────────────────────────────────────────────────
+// All AI calls go through our Supabase Edge Function, which holds the
+// Anthropic API key server-side. Never call api.anthropic.com directly
+// from the browser — the key would be visible in page source.
+const CLAUDE_MODEL='claude-sonnet-5';
+const CLAUDE_ENDPOINT=SUPABASE_URL+'/functions/v1/claude';
+
+async function callClaude(payload){
+  // Prefer the signed-in user's token; fall back to the public anon key
+  let token=SUPABASE_ANON_KEY;
+  try{
+    const {data}=await sb.auth.getSession();
+    if(data?.session?.access_token) token=data.session.access_token;
+  }catch(e){}
+  return fetch(CLAUDE_ENDPOINT,{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'Authorization':'Bearer '+token,
+      'apikey':SUPABASE_ANON_KEY
+    },
+    body:JSON.stringify(payload)
+  });
+}
+
 // Builds the system prompt, layering in personalization when available
 function getSYS(){
   let prompt=SYS;
@@ -469,11 +494,7 @@ async function sendAI(){
     .map(m=>({role:m.role==='ai'?'assistant':m.role,content:m.content}));
   let fullText='';let innerEl=null;
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2048,stream:true,system:getSYS(),messages:history})
-    });
+    const res=await callClaude({model:CLAUDE_MODEL,max_tokens:2048,stream:true,system:getSYS(),messages:history});
     document.getElementById('aiTyping').classList.remove('show');
     innerEl=addBub('ai','',true);
     const reader=res.body.getReader();
@@ -528,7 +549,7 @@ async function buildProto(){
   const goals={recovery:'Recovery and Healing',fatloss:'Fat Loss and Body Composition',gh:'Growth Hormone Optimization',cognitive:'Cognitive Enhancement',longevity:'Longevity and Anti-Aging',muscle:'Muscle Growth and Performance'};
   const prompt='Build a comprehensive educational research protocol for: '+goals[protoGoal]+(ctx?'. Context: '+ctx:'')+'.\n\nInclude:\n1. **Recommended compounds** with specific dosage ranges\n2. **Protocol timeline** week-by-week for the first 8 weeks\n3. **Mechanism of synergy** between chosen compounds\n4. **Key considerations** and safety notes\n5. **Suggested further reading**\n\nBe thorough, format with headers, and note this is for educational purposes only.';
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,system:getSYS(),messages:[{role:'user',content:prompt}]})});
+    const r=await callClaude({model:CLAUDE_MODEL,max_tokens:1500,system:getSYS(),messages:[{role:'user',content:prompt}]});
     const d=await r.json();
     const txt=(d.content||[]).map(b=>b.type==='text'?b.text:'').join('');
     cont.innerHTML=rMD(txt);
