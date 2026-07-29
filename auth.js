@@ -185,6 +185,33 @@ document.addEventListener('click', (e) => {
   if (chip && menu && !chip.contains(e.target)) menu.classList.remove('open');
 });
 
+// ── Avatar: OAuth profile photo if available, else initial ────────────
+// Google/OAuth providers expose the photo as avatar_url or picture.
+// The image is preloaded first so a broken/blocked URL falls back to the
+// initial instead of rendering an empty circle.
+function setUserAvatar(user, label) {
+  const el = document.getElementById('userChipAvatar');
+  if (!el) return;
+  const meta = user.user_metadata || {};
+  const photo = meta.avatar_url || meta.picture || null;
+  const initial = (label || 'U').charAt(0).toUpperCase();
+
+  // Default to the initial immediately, then upgrade to the photo if it loads
+  el.textContent = initial;
+  el.style.backgroundImage = '';
+  el.classList.remove('has-photo');
+
+  if (!photo) return;
+  const img = new Image();
+  img.onload = () => {
+    el.textContent = '';
+    el.style.backgroundImage = `url("${photo}")`;
+    el.classList.add('has-photo');
+  };
+  img.onerror = () => { /* keep the initial fallback */ };
+  img.src = photo;
+}
+
 // ── Update nav UI based on auth state ────────────────────────────────
 function updateAuthUI(user) {
   currentUser = user;
@@ -198,7 +225,7 @@ function updateAuthUI(user) {
     const label = user.user_metadata?.first_name || user.user_metadata?.full_name || user.user_metadata?.user_name || user.email || 'User';
     document.getElementById('userChipName').textContent = label.split(' ')[0];
     document.getElementById('userMenuEmail').textContent = user.email || '';
-    document.getElementById('userChipAvatar').textContent = label.charAt(0).toUpperCase();
+    setUserAvatar(user, label);
   } else {
     signInBtn.style.display = '';
     signUpBtn.style.display = '';

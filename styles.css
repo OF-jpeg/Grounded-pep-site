@@ -258,7 +258,8 @@ footer{border-top:1px solid var(--b1);padding:48px 64px 36px;max-width:1400px;ma
 /* ═══════════ AUTH: modal, user chip, user menu ═══════════ */
 .user-chip{display:flex;align-items:center;gap:9px;padding:6px 14px 6px 6px;border-radius:50px;background:var(--g2);border:1px solid var(--b1);cursor:pointer;position:relative;transition:border-color .15s}
 .user-chip:hover{border-color:var(--b2)}
-.user-chip-avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,rgba(255,255,255,0.95),rgba(224,231,255,0.9));color:#06101F;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:12px;font-weight:700;flex-shrink:0}
+.user-chip-avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,rgba(255,255,255,0.95),rgba(224,231,255,0.9));color:#06101F;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:12px;font-weight:700;flex-shrink:0;background-size:cover;background-position:center;background-repeat:no-repeat;overflow:hidden}
+.user-chip-avatar.has-photo{background-color:transparent;box-shadow:0 0 0 1px rgba(255,255,255,.18) inset}
 #userChipName{font-size:13px;font-weight:500;color:var(--t1)}
 .user-menu{position:absolute;top:calc(100% + 10px);right:0;background:var(--base);border:1px solid var(--b2);border-radius:var(--r);padding:8px;min-width:200px;box-shadow:0 16px 48px rgba(0,0,0,.6);opacity:0;transform:translateY(-6px);pointer-events:none;transition:opacity .15s,transform .15s;z-index:50}
 .user-menu.open{opacity:1;transform:none;pointer-events:all}
