@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-<link rel="stylesheet" href="styles.css?v=1785365981">
+<link rel="stylesheet" href="styles.css?v=1785366469">
 </head>
 <body>
 <div class="agegate-ov" id="ageGateOverlay">
@@ -167,7 +167,18 @@
     <div class="ai-main">
       <div class="ai-main-h">
         <span style="font-family:var(--fd);font-size:15px;font-weight:600;color:var(--t1)">AI Research Guide</span>
-        <div class="ai-model">claude-sonnet-4-6</div>
+        <div class="ai-model">claude-sonnet-5</div>
+        <div class="export-wrap">
+          <button class="export-btn" onclick="toggleExportMenu()" title="Export conversation">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export
+          </button>
+          <div class="export-menu" id="exportMenu">
+            <button class="export-item" onclick="exportChatMarkdown()">Download as Markdown</button>
+            <button class="export-item" onclick="printChat()">Save as PDF / Print</button>
+            <button class="export-item" onclick="copyChatToClipboard()">Copy full conversation</button>
+          </div>
+        </div>
       </div>
       <div class="ai-msgs" id="aiMsgs">
         <div class="ai-msg ai">
@@ -304,6 +315,7 @@
           <div class="pf"><span class="pfn">✕</span> Unlimited bookmarks</div>
           <div class="pf"><span class="pfn">✕</span> Unlimited Dose Tracker</div>
           <div class="pf"><span class="pfn">✕</span> Research Hub</div>
+          <div class="pf"><span class="pfn">✕</span> Conversation export</div>
         </div>
       </div>
       <div class="price-c feat">
@@ -322,6 +334,7 @@
           <div class="pf"><span class="pfy">✓</span> Unlimited bookmarks</div>
           <div class="pf"><span class="pfy">✓</span> Unlimited Dose Tracker + vial inventory</div>
           <div class="pf"><span class="pfy">✓</span> All 6 curated stacking guides</div>
+          <div class="pf"><span class="pfy">✓</span> Conversation export (Markdown / PDF)</div>
         </div>
       </div>
     </div>
@@ -601,12 +614,12 @@
   </div>
 </div>
 
-<script src="legal.js?v=1785365981"></script>
+<script src="legal.js?v=1785366469"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js?v=1785365981"></script>
-<script src="billing.js?v=1785365981"></script>
-<script src="tracker.js?v=1785365981"></script>
-<script src="data.js?v=1785365981"></script>
-<script src="app.js?v=1785365981"></script>
+<script src="auth.js?v=1785366469"></script>
+<script src="billing.js?v=1785366469"></script>
+<script src="tracker.js?v=1785366469"></script>
+<script src="data.js?v=1785366469"></script>
+<script src="app.js?v=1785366469"></script>
 </body>
 </html>

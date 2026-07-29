@@ -542,6 +542,145 @@ async function sendAI(){
 function askQ(el){document.getElementById('aiInp').value=el.textContent;sendAI();}
 function aiKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAI();}}
 function autoR(el){el.style.height='24px';el.style.height=Math.min(el.scrollHeight,150)+'px';}
+// ── Conversation export (Pro feature) ─────────────────────────────────
+function toggleExportMenu(){
+  const menu=document.getElementById('exportMenu');
+  if(!menu) return;
+  menu.classList.toggle('open');
+}
+document.addEventListener('click',e=>{
+  const wrap=document.querySelector('.export-wrap');
+  const menu=document.getElementById('exportMenu');
+  if(wrap&&menu&&!wrap.contains(e.target)) menu.classList.remove('open');
+});
+
+// Returns the active conversation, or null if there's nothing to export
+function getExportableChat(){
+  const sess=chatSessions[curChat];
+  if(!sess||!sess.msgs||!sess.msgs.length){
+    toast('Nothing to export yet');
+    return null;
+  }
+  // Only the intro message present means no real conversation happened
+  const hasUserMsg=sess.msgs.some(m=>m.role==='user');
+  if(!hasUserMsg){
+    toast('Ask something first, then export');
+    return null;
+  }
+  return sess;
+}
+
+// Strips markdown to readable plain text for the clipboard/print versions
+function stripMD(text){
+  return String(text)
+    .replace(/```[\w]*\n?([\s\S]*?)```/g,'$1')
+    .replace(/\*\*\*(.+?)\*\*\*/g,'$1')
+    .replace(/\*\*(.+?)\*\*/g,'$1')
+    .replace(/\*(.+?)\*/g,'$1')
+    .replace(/`([^`]+)`/g,'$1')
+    .replace(/^#{1,6}\s+/gm,'')
+    .replace(/\[(.+?)\]\((.+?)\)/g,'$1 ($2)')
+    .trim();
+}
+
+function chatToMarkdown(sess){
+  const date=new Date().toLocaleString();
+  let out='# '+(sess.title||'Grounded Conversation')+'\n\n';
+  out+='_Exported from Grounded on '+date+'_\n\n';
+  out+='---\n\n';
+  sess.msgs.forEach(m=>{
+    const who=m.role==='user'?'**You**':'**Grounded AI**';
+    out+=who+'\n\n'+m.content.trim()+'\n\n';
+  });
+  out+='---\n\n';
+  out+='_Grounded provides educational information for research purposes only. '
+     +'This is not medical advice. Consult a licensed healthcare professional '
+     +'before using any compound._\n';
+  return out;
+}
+
+function safeFilename(title){
+  return (title||'grounded-conversation')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-+|-+$/g,'')
+    .slice(0,60)||'grounded-conversation';
+}
+
+function exportChatMarkdown(){
+  if(typeof isPro==='function'&&!isPro()){toggleExportMenu();openPaywall('export');return;}
+  const sess=getExportableChat();
+  if(!sess) return;
+  const md=chatToMarkdown(sess);
+  const blob=new Blob([md],{type:'text/markdown;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='grounded-'+safeFilename(sess.title)+'.md';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toggleExportMenu();
+  toast('Downloaded ✓');
+}
+
+async function copyChatToClipboard(){
+  if(typeof isPro==='function'&&!isPro()){toggleExportMenu();openPaywall('export');return;}
+  const sess=getExportableChat();
+  if(!sess) return;
+  const text=sess.msgs.map(m=>(m.role==='user'?'You: ':'Grounded AI: ')+stripMD(m.content)).join('\n\n');
+  try{
+    await navigator.clipboard.writeText(text);
+    toast('Copied to clipboard ✓');
+  }catch(e){
+    toast('Copy failed — try the Markdown download');
+  }
+  toggleExportMenu();
+}
+
+// Opens a clean printable view; the browser's print dialog offers "Save as PDF"
+function printChat(){
+  if(typeof isPro==='function'&&!isPro()){toggleExportMenu();openPaywall('export');return;}
+  const sess=getExportableChat();
+  if(!sess) return;
+  toggleExportMenu();
+
+  const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const rows=sess.msgs.map(m=>{
+    const who=m.role==='user'?'You':'Grounded AI';
+    const cls=m.role==='user'?'q':'a';
+    return '<div class="msg '+cls+'"><div class="who">'+who+'</div><div class="body">'
+      +esc(stripMD(m.content)).replace(/\n/g,'<br>')+'</div></div>';
+  }).join('');
+
+  const html='<!DOCTYPE html><html><head><meta charset="utf-8">'
+    +'<title>'+esc(sess.title||'Grounded Conversation')+'</title><style>'
+    +'body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:720px;margin:40px auto;padding:0 24px;color:#111;line-height:1.6}'
+    +'h1{font-size:22px;margin-bottom:4px}'
+    +'.meta{color:#666;font-size:12px;margin-bottom:28px}'
+    +'.msg{margin-bottom:22px;page-break-inside:avoid}'
+    +'.who{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#666;margin-bottom:6px}'
+    +'.msg.q .body{background:#f4f6fa;border-left:3px solid #2563EB;padding:12px 14px;border-radius:4px}'
+    +'.msg.a .body{padding:0 2px}'
+    +'.disc{margin-top:36px;padding-top:16px;border-top:1px solid #ddd;font-size:11px;color:#666;font-style:italic}'
+    +'@media print{body{margin:0}}'
+    +'</style></head><body>'
+    +'<h1>'+esc(sess.title||'Grounded Conversation')+'</h1>'
+    +'<div class="meta">Exported from Grounded · '+new Date().toLocaleString()+'</div>'
+    +rows
+    +'<div class="disc">Grounded provides educational information for research purposes only. '
+    +'This is not medical advice. Consult a licensed healthcare professional before using any compound.</div>'
+    +'</body></html>';
+
+  const w=window.open('','_blank');
+  if(!w){toast('Allow pop-ups to use print export');return;}
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(()=>w.print(),350);
+}
+
 function regenLast(){
   const sess=chatSessions[curChat];
   if(!sess) return;

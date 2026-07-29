@@ -167,6 +167,10 @@ var PAYWALL_COPY = {
     title: 'This stack is Pro-only',
     sub: 'Free accounts get ' + FREE_LIMITS.stacks + ' curated stacking guides. Upgrade to unlock every protocol.'
   },
+  export: {
+    title: 'Conversation export is Pro-only',
+    sub: 'Upgrade to download your AI conversations as Markdown or PDF, or copy them in full.'
+  },
   tracker: {
     title: 'Cloud sync is Pro-only',
     sub: 'Your tracker works locally on the free plan. Upgrade to sync doses and vials across all your devices.'

@@ -408,3 +408,13 @@ footer{border-top:1px solid var(--b1);padding:48px 64px 36px;max-width:1400px;ma
 /* Plan usage counters (tracker, bookmarks) */
 .plan-count{font-size:11.5px;color:var(--t3);font-weight:500}
 .plan-count a{color:var(--t1);text-decoration:underline;cursor:pointer}
+
+/* ═══════════ CONVERSATION EXPORT ═══════════ */
+.export-wrap{position:relative;margin-left:auto}
+.export-btn{display:flex;align-items:center;gap:6px;padding:7px 13px;border-radius:9px;background:var(--g2);border:1px solid var(--b1);color:var(--t2);font-size:12.5px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:all .15s}
+.export-btn:hover{color:var(--t1);border-color:var(--b2)}
+.export-btn svg{flex-shrink:0}
+.export-menu{position:absolute;top:calc(100% + 8px);right:0;background:var(--base);border:1px solid var(--b2);border-radius:var(--r);padding:6px;min-width:210px;box-shadow:0 16px 48px rgba(0,0,0,.6);opacity:0;transform:translateY(-6px);pointer-events:none;transition:opacity .15s,transform .15s;z-index:60}
+.export-menu.open{opacity:1;transform:none;pointer-events:all}
+.export-item{width:100%;text-align:left;padding:9px 11px;border-radius:8px;background:none;border:none;color:var(--t1);font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:background .15s}
+.export-item:hover{background:var(--g2)}
