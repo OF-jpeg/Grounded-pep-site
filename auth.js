@@ -358,13 +358,25 @@ async function skipOnboarding() {
   });
 })();
 
-(async function initAuth() {
-  const { data: { session } } = await sb.auth.getSession();
-  updateAuthUI(session?.user || null);
-  checkProfileCompletion(session?.user || null);
+// Auth init must wait for every script to load — updateAuthUI() calls into
+// billing.js (applyPlanUI) and app.js (renderRecommendations), both of which
+// load after this file. Running too early silently skipped those hooks, so
+// Pro state only appeared after a tab-focus event re-fired onAuthStateChange.
+function bootAuth() {
+  (async function () {
+    const { data: { session } } = await sb.auth.getSession();
+    updateAuthUI(session?.user || null);
+    checkProfileCompletion(session?.user || null);
+  })();
 
   sb.auth.onAuthStateChange((_event, session) => {
     updateAuthUI(session?.user || null);
     checkProfileCompletion(session?.user || null);
   });
-})();
+}
+
+if (document.readyState === 'complete') {
+  bootAuth();
+} else {
+  window.addEventListener('load', bootAuth);
+}
