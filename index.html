@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-<link rel="stylesheet" href="styles.css?v=1785366469">
+<link rel="stylesheet" href="styles.css?v=1785367445">
 </head>
 <body>
 <div class="agegate-ov" id="ageGateOverlay">
@@ -72,8 +72,30 @@
       </div>
     </div>
     <button class="btn-pro" onclick="show('pricing')">Get Pro ✦</button>
+    <button class="nav-burger" id="navBurger" onclick="toggleMobileNav()" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
+
+<div class="mnav-backdrop" id="mnavBackdrop" onclick="closeMobileNav()"></div>
+<div class="mnav" id="mobileNav">
+  <div class="mnav-head">
+    <span class="logo-t">Menu</span>
+    <button class="mnav-close" onclick="closeMobileNav()" aria-label="Close menu">✕</button>
+  </div>
+  <div class="mnav-links">
+    <button class="mnav-link" onclick="mobileGo('home')">Home</button>
+    <button class="mnav-link" onclick="mobileGo('db')">Database</button>
+    <button class="mnav-link" onclick="mobileGo('ai')">AI Guide</button>
+    <button class="mnav-link" onclick="mobileGo('proto')">Protocol Builder</button>
+    <button class="mnav-link" onclick="mobileGo('stacks')">Stacking Guide</button>
+    <button class="mnav-link" onclick="mobileGo('tracker')">Dose Tracker</button>
+    <button class="mnav-link" onclick="mobileGo('research')">Research Hub</button>
+    <button class="mnav-link" onclick="mobileGo('pricing')">Pricing</button>
+  </div>
+  <div class="mnav-footer" id="mnavAuth"></div>
+</div>
 <main>
 <div class="page on" id="page-home">
   <div class="hero-wrap">
@@ -254,6 +276,7 @@
       <button class="ttab on" onclick="showTrkTab('today',this)">Today</button>
       <button class="ttab" onclick="showTrkTab('regimen',this)">My Regimen</button>
       <button class="ttab" onclick="showTrkTab('vials',this)">Vial Inventory</button>
+      <button class="ttab" onclick="showTrkTab('calc',this)">Calculator</button>
     </div>
 
     <div class="trk-panel on" id="trk-today">
@@ -270,6 +293,44 @@
     <div class="trk-panel" id="trk-vials">
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><button class="btn-hero bh1" onclick="openVialModal()">+ Add a vial</button><span class="plan-count" id="vialCount"></span></div>
       <div id="vialList" style="margin-top:16px"></div>
+    </div>
+
+    <div class="trk-panel" id="trk-calc">
+      <div class="calc-wrap">
+        <div class="calc-card">
+          <div class="calc-title">Reconstitution Calculator</div>
+          <p class="calc-sub">Work out exactly how many units to draw on an insulin syringe.</p>
+          <label class="clb calc-lbl">Peptide amount in vial (mg)</label>
+          <input class="pc2" type="number" id="rcMg" placeholder="5" step="any" oninput="calcRecon()">
+          <label class="clb calc-lbl">Bacteriostatic water added (ml)</label>
+          <input class="pc2" type="number" id="rcWater" placeholder="2" step="any" oninput="calcRecon()">
+          <label class="clb calc-lbl">Desired dose (mcg)</label>
+          <input class="pc2" type="number" id="rcDose" placeholder="250" step="any" oninput="calcRecon()">
+          <label class="clb calc-lbl">Syringe type</label>
+          <select class="pc2" id="rcSyringe" onchange="calcRecon()">
+            <option value="100">U-100 (1ml / 100 units)</option>
+            <option value="50">U-50 (0.5ml / 50 units)</option>
+            <option value="30">U-30 (0.3ml / 30 units)</option>
+          </select>
+        </div>
+        <div class="calc-card calc-result" id="rcResultCard">
+          <div class="calc-out-label">Draw to</div>
+          <div class="calc-out-big" id="rcUnits">—</div>
+          <div class="calc-out-unit" id="rcUnitsLabel">units</div>
+          <div class="calc-rows">
+            <div class="calc-row"><span>Concentration</span><strong id="rcConc">—</strong></div>
+            <div class="calc-row"><span>Volume per dose</span><strong id="rcVol">—</strong></div>
+            <div class="calc-row"><span>Doses per vial</span><strong id="rcDoses">—</strong></div>
+          </div>
+          <div class="calc-note" id="rcNote">Enter your vial details to calculate.</div>
+        </div>
+      </div>
+      <div class="calc-tips">
+        <div class="calc-tips-title">Reconstitution reminders</div>
+        Inject the water slowly down the inside wall of the vial, not directly onto the powder.
+        Swirl gently until dissolved — never shake. Refrigerate at 2–8°C after mixing and note the date.
+        Discard if the solution turns cloudy or develops particles.
+      </div>
     </div>
   </div>
 </div>
@@ -614,12 +675,12 @@
   </div>
 </div>
 
-<script src="legal.js?v=1785366469"></script>
+<script src="legal.js?v=1785367445"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js?v=1785366469"></script>
-<script src="billing.js?v=1785366469"></script>
-<script src="tracker.js?v=1785366469"></script>
-<script src="data.js?v=1785366469"></script>
-<script src="app.js?v=1785366469"></script>
+<script src="auth.js?v=1785367445"></script>
+<script src="billing.js?v=1785367445"></script>
+<script src="tracker.js?v=1785367445"></script>
+<script src="data.js?v=1785367445"></script>
+<script src="app.js?v=1785367445"></script>
 </body>
 </html>

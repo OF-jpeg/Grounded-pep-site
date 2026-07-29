@@ -1,5 +1,19 @@
 let actFilter='all', bookmarks=new Set(), chatSessions=[], curChat=0, protoGoal=null, curModal=null;
 
+// ── Bookmark persistence ──────────────────────────────────────────────
+// Bookmarks were previously in-memory only and lost on every refresh.
+const BOOKMARKS_KEY='grounded_bookmarks';
+function loadBookmarks(){
+  try{
+    const raw=localStorage.getItem(BOOKMARKS_KEY);
+    if(raw) bookmarks=new Set(JSON.parse(raw));
+  }catch(e){}
+}
+function saveBookmarks(){
+  try{ localStorage.setItem(BOOKMARKS_KEY,JSON.stringify([...bookmarks])); }catch(e){}
+}
+loadBookmarks();
+
 // CANVAS PARTICLE SYSTEM
 (function(){
   const cv=document.getElementById('bgCanvas');
@@ -29,7 +43,9 @@ let actFilter='all', bookmarks=new Set(), chatSessions=[], curChat=0, protoGoal=
 })();
 
 // NAVIGATION
+let currentPage='home';
 function show(pg){
+  currentPage=pg;
   document.querySelectorAll('.page').forEach(e=>e.classList.remove('on'));
   document.querySelectorAll('.nl').forEach(e=>e.classList.remove('on'));
   const el=document.getElementById('page-'+pg);
@@ -62,15 +78,19 @@ window.addEventListener('scroll',()=>document.getElementById('mainNav').classLis
 // DATABASE
 function buildFilters(){
   const row=document.getElementById('dbFilters');
-  if(!row||row.children.length) return;
+  if(!row) return;
   const cats=[{k:'all',l:'All compounds'},...Object.entries(CATS).map(([k,v])=>({k,l:v.l}))];
-  row.innerHTML=cats.map(c=>'<span class="fch'+(c.k==='all'?' on':'')+ '" onclick="setFilter(\''+c.k+'\',this)">'+c.l+'</span>').join('');
+  let html=cats.map(c=>'<span class="fch'+(c.k===actFilter?' on':'')+ '" onclick="setFilter(\''+c.k+'\',this)">'+c.l+'</span>').join('');
+  // Saved filter sits at the end with a live count
+  html+='<span class="fch fch-saved'+(actFilter==='saved'?' on':'')+ '" onclick="setFilter(\'saved\',this)">★ Saved'
+    +(bookmarks.size?' ('+bookmarks.size+')':'')+'</span>';
+  row.innerHTML=html;
 }
 function setFilter(cat,el){
   actFilter=cat;
   document.querySelectorAll('.fch').forEach(e=>e.classList.remove('on'));
-  el.classList.add('on');
-  renderDB();
+  if(el) el.classList.add('on');
+  renderDB(); // buildFilters re-applies the active chip from actFilter
 }
 function renderDB(){
   buildFilters();
@@ -78,7 +98,7 @@ function renderDB(){
   const sq=q.toLowerCase();
   const sort=(document.getElementById('dbSort')||{}).value||'pop';
   let list=PEPS.filter(p=>{
-    const catOk=actFilter==='all'||p.cat===actFilter;
+    const catOk=actFilter==='all'||(actFilter==='saved'?bookmarks.has(p.id):p.cat===actFilter);
     const qOk=!sq||p.n.toLowerCase().includes(sq)||p.fn.toLowerCase().includes(sq)||p.ov.toLowerCase().includes(sq)||(p.bens||[]).some(b=>b.toLowerCase().includes(sq));
     return catOk&&qOk;
   });
@@ -87,7 +107,16 @@ function renderDB(){
   else list.sort((a,b)=>b.pop-a.pop);
   const grid=document.getElementById('dbGrid');
   if(!grid) return;
-  if(!list.length){grid.innerHTML='<div class="db-empty"><div style="font-size:48px;margin-bottom:16px">🔬</div><div style="font-family:var(--fd);font-size:22px;color:var(--t1);margin-bottom:8px">No compounds found</div><p>Try adjusting your search or filter.</p></div>';return}
+  if(!list.length){
+    const savedEmpty=actFilter==='saved'&&!bookmarks.size;
+    grid.innerHTML=savedEmpty
+      ? '<div class="db-empty"><div style="font-size:48px;margin-bottom:16px">☆</div>'
+        +'<div style="font-family:var(--fd);font-size:22px;color:var(--t1);margin-bottom:8px">No saved compounds yet</div>'
+        +'<p>Tap the ☆ on any compound to save it here for quick access.</p>'
+        +'<button class="btn-hero bh2" style="margin-top:18px" onclick="setFilter(\'all\',null)">Browse all compounds</button></div>'
+      : '<div class="db-empty"><div style="font-size:48px;margin-bottom:16px">🔬</div><div style="font-family:var(--fd);font-size:22px;color:var(--t1);margin-bottom:8px">No compounds found</div><p>Try adjusting your search or filter.</p></div>';
+    return;
+  }
   grid.innerHTML=list.map(pepCardHTML).join('');
 }
 
@@ -176,6 +205,7 @@ function toggleBm(e,id){
     return;
   }
   removing?bookmarks.delete(id):bookmarks.add(id);
+  saveBookmarks();
   renderDB();
   toast(removing?'Removed bookmark':'Bookmarked ✓');
 }
@@ -409,6 +439,59 @@ async function callClaude(payload){
     },
     body:JSON.stringify(payload)
   });
+}
+
+// ── Mobile navigation ─────────────────────────────────────────────────
+// The desktop nav links are hidden under 900px, so this drawer is the only
+// way to navigate on phones.
+function toggleMobileNav(){
+  const open=document.getElementById('mobileNav').classList.contains('open');
+  open?closeMobileNav():openMobileNav();
+}
+function openMobileNav(){
+  document.getElementById('mobileNav').classList.add('open');
+  document.getElementById('mnavBackdrop').classList.add('open');
+  document.getElementById('navBurger').classList.add('open');
+  document.getElementById('navBurger').setAttribute('aria-expanded','true');
+  document.body.style.overflow='hidden';
+  renderMobileAuth();
+  syncMobileNavActive();
+}
+function closeMobileNav(){
+  document.getElementById('mobileNav').classList.remove('open');
+  document.getElementById('mnavBackdrop').classList.remove('open');
+  document.getElementById('navBurger').classList.remove('open');
+  document.getElementById('navBurger').setAttribute('aria-expanded','false');
+  document.body.style.overflow='';
+}
+function mobileGo(pg){
+  closeMobileNav();
+  show(pg);
+}
+function syncMobileNavActive(){
+  const keys=['home','db','ai','proto','stacks','tracker','research','pricing'];
+  const links=document.querySelectorAll('.mnav-link');
+  links.forEach((l,i)=>l.classList.toggle('on',keys[i]===currentPage));
+}
+// Mirrors sign-in state into the drawer footer
+function renderMobileAuth(){
+  const el=document.getElementById('mnavAuth');
+  if(!el) return;
+  const user=(typeof currentUser!=='undefined')?currentUser:null;
+  if(user){
+    const meta=user.user_metadata||{};
+    const name=meta.first_name||meta.full_name||user.email||'User';
+    const pro=(typeof isPro==='function')&&isPro();
+    el.innerHTML='<div class="mnav-user">'
+      +'<div class="user-chip-avatar">'+String(name).charAt(0).toUpperCase()+'</div>'
+      +'<div><div class="mnav-user-name">'+name+(pro?' <span class="pro-badge">PRO</span>':'')+'</div>'
+      +'<div class="mnav-user-email">'+(user.email||'')+'</div></div></div>'
+      +(pro?'':'<button class="btn-hero bh1" onclick="mobileGo(\'pricing\')">Get Pro ✦</button>')
+      +'<button class="btn-hero bh2" onclick="signOutUser();closeMobileNav()">Sign out</button>';
+  } else {
+    el.innerHTML='<button class="btn-hero bh1" onclick="closeMobileNav();openAuth(\'signup\')">Sign up</button>'
+      +'<button class="btn-hero bh2" onclick="closeMobileNav();openAuth(\'signin\')">Sign in</button>';
+  }
 }
 
 // Builds the system prompt, layering in personalization when available

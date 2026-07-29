@@ -73,6 +73,63 @@ async function syncVialToSupabase(vial) {
   } catch (e) {}
 }
 
+// ── Reconstitution calculator ─────────────────────────────────────────
+// Converts vial strength + diluent volume + target dose into syringe units.
+function calcRecon() {
+  const mg = parseFloat(document.getElementById('rcMg').value) || 0;
+  const water = parseFloat(document.getElementById('rcWater').value) || 0;
+  const doseMcg = parseFloat(document.getElementById('rcDose').value) || 0;
+  const syringeUnits = parseFloat(document.getElementById('rcSyringe').value) || 100;
+  // A U-100 syringe holds 1ml across 100 units; U-50 holds 0.5ml across 50, etc.
+  const syringeMl = syringeUnits === 100 ? 1 : (syringeUnits === 50 ? 0.5 : 0.3);
+  const unitsPerMl = syringeUnits / syringeMl;
+
+  const unitsEl = document.getElementById('rcUnits');
+  const labelEl = document.getElementById('rcUnitsLabel');
+  const noteEl = document.getElementById('rcNote');
+  const concEl = document.getElementById('rcConc');
+  const volEl = document.getElementById('rcVol');
+  const dosesEl = document.getElementById('rcDoses');
+
+  if (!mg || !water || !doseMcg) {
+    unitsEl.textContent = '—';
+    labelEl.textContent = 'units';
+    concEl.textContent = '—';
+    volEl.textContent = '—';
+    dosesEl.textContent = '—';
+    noteEl.textContent = 'Enter your vial details to calculate.';
+    noteEl.classList.remove('calc-warn');
+    return;
+  }
+
+  const totalMcg = mg * 1000;
+  const concMcgPerMl = totalMcg / water;      // mcg per ml
+  const volMl = doseMcg / concMcgPerMl;        // ml needed for the dose
+  const units = volMl * unitsPerMl;            // syringe units
+  const dosesPerVial = totalMcg / doseMcg;
+
+  unitsEl.textContent = units < 10 ? units.toFixed(1) : Math.round(units);
+  labelEl.textContent = 'units on a U-' + syringeUnits + ' syringe';
+  concEl.textContent = Math.round(concMcgPerMl).toLocaleString() + ' mcg/ml';
+  volEl.textContent = volMl.toFixed(3) + ' ml';
+  dosesEl.textContent = dosesPerVial.toFixed(1);
+
+  // Flag doses that don't fit the selected syringe or are too small to measure
+  if (volMl > syringeMl) {
+    noteEl.textContent = 'This dose needs ' + volMl.toFixed(2) + ' ml, which exceeds the '
+      + syringeMl + ' ml capacity of a U-' + syringeUnits + ' syringe. Use less water, a larger syringe, or split the dose.';
+    noteEl.classList.add('calc-warn');
+  } else if (units < 2) {
+    noteEl.textContent = 'Only ' + units.toFixed(1) + ' units — very hard to measure accurately. '
+      + 'Consider adding more bacteriostatic water to dilute further.';
+    noteEl.classList.add('calc-warn');
+  } else {
+    noteEl.textContent = 'Draw to the ' + (units < 10 ? units.toFixed(1) : Math.round(units))
+      + ' unit mark. This vial gives you about ' + Math.floor(dosesPerVial) + ' doses.';
+    noteEl.classList.remove('calc-warn');
+  }
+}
+
 // ── Main render entry point ────────────────────────────────────────────
 function renderTracker() {
   populatePeptideDatalist();
@@ -123,6 +180,7 @@ function showTrkTab(tab, btn) {
   document.querySelectorAll('.ttab').forEach(e => e.classList.remove('on'));
   document.getElementById('trk-' + tab).classList.add('on');
   if (btn) btn.classList.add('on');
+  if (tab === 'calc') calcRecon();
 }
 
 // ── Today's checklist ───────────────────────────────────────────────────
