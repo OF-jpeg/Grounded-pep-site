@@ -16,7 +16,11 @@ const ANNUAL_MONTHLY_PRICE = 19; // billed annually at $228/yr
 const FREE_LIMITS = {
   compounds: 15,     // most-popular compounds openable on the free plan
   aiPerDay: 10,      // AI Guide messages per rolling day
-  protocolTotal: 1   // lifetime free Protocol Builder generations
+  protocolTotal: 1,  // lifetime free Protocol Builder generations
+  bookmarks: 5,      // saved compounds
+  regimenItems: 2,   // tracked doses in the Dose Tracker
+  vials: 1,          // vials in inventory
+  stacks: 2          // readable curated stacking guides
 };
 
 // ── Plan state ────────────────────────────────────────────────────────
@@ -93,6 +97,42 @@ async function markFreeFeatureUsed(feature) {
   }
 }
 
+// ── Pricing page monthly/annual toggle ────────────────────────────────
+function setBilling(period) {
+  var monthlyBtn = document.getElementById('btMonthly');
+  var annualBtn = document.getElementById('btAnnual');
+  var amt = document.getElementById('priceAmt');
+  var per = document.getElementById('pricePer');
+  if (!monthlyBtn || !annualBtn || !amt || !per) return;
+
+  if (period === 'annual') {
+    monthlyBtn.classList.remove('on');
+    annualBtn.classList.add('on');
+    amt.textContent = '$' + ANNUAL_MONTHLY_PRICE;
+    per.textContent = '/month · billed $' + (ANNUAL_MONTHLY_PRICE * 12) + '/year';
+  } else {
+    annualBtn.classList.remove('on');
+    monthlyBtn.classList.add('on');
+    amt.textContent = '$' + MONTHLY_PRICE;
+    per.textContent = '/month · cancel anytime';
+  }
+}
+
+// ── Count-based limits (bookmarks, tracker) ───────────────────────────
+// Each returns true when the user is still under their plan's limit.
+function canAddBookmark(currentCount) {
+  return isPro() || currentCount < FREE_LIMITS.bookmarks;
+}
+function canAddRegimenItem(currentCount) {
+  return isPro() || currentCount < FREE_LIMITS.regimenItems;
+}
+function canAddVial(currentCount) {
+  return isPro() || currentCount < FREE_LIMITS.vials;
+}
+function canViewStack(index) {
+  return isPro() || index < FREE_LIMITS.stacks;
+}
+
 // ── Contextual paywall ────────────────────────────────────────────────
 var PAYWALL_COPY = {
   compound: {
@@ -110,6 +150,22 @@ var PAYWALL_COPY = {
   research: {
     title: 'Research Hub is Pro-only',
     sub: 'Get curated research summaries and plain-language breakdowns of the latest peptide science.'
+  },
+  bookmark: {
+    title: 'Bookmark limit reached',
+    sub: 'Free accounts can save ' + FREE_LIMITS.bookmarks + ' compounds. Upgrade for unlimited bookmarks.'
+  },
+  regimen: {
+    title: 'Track more compounds with Pro',
+    sub: 'Free accounts can track ' + FREE_LIMITS.regimenItems + ' doses at a time. Upgrade to build your full protocol.'
+  },
+  vial: {
+    title: 'Vial limit reached',
+    sub: 'Free accounts can track ' + FREE_LIMITS.vials + ' vial. Upgrade to manage your whole inventory with cost-per-dose tracking.'
+  },
+  stack: {
+    title: 'This stack is Pro-only',
+    sub: 'Free accounts get ' + FREE_LIMITS.stacks + ' curated stacking guides. Upgrade to unlock every protocol.'
   },
   tracker: {
     title: 'Cloud sync is Pro-only',
@@ -141,4 +197,6 @@ function applyPlanUI() {
   updateAiQuotaUI();
   if (typeof renderDB === 'function' && document.getElementById('dbGrid')) renderDB();
   if (typeof renderResearch === 'function') renderResearch();
+  if (typeof renderStacks === 'function') renderStacks();
+  if (typeof updatePlanCounts === 'function') updatePlanCounts();
 }

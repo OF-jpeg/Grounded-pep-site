@@ -169,9 +169,15 @@ function viewGoalCategory(){
 }
 function toggleBm(e,id){
   e.stopPropagation();
-  bookmarks.has(id)?bookmarks.delete(id):bookmarks.add(id);
+  const removing=bookmarks.has(id);
+  // Removing is always allowed; adding is capped on the free plan
+  if(!removing&&typeof canAddBookmark==='function'&&!canAddBookmark(bookmarks.size)){
+    openPaywall('bookmark');
+    return;
+  }
+  removing?bookmarks.delete(id):bookmarks.add(id);
   renderDB();
-  toast(bookmarks.has(id)?'Bookmarked ✓':'Removed bookmark');
+  toast(removing?'Removed bookmark':'Bookmarked ✓');
 }
 
 // MODAL
@@ -230,14 +236,27 @@ function askAboutModal(){
 // STACKS
 function renderStacks(){
   const grid=document.getElementById('stkGrid');
-  if(!grid||grid.children.length) return;
-  grid.innerHTML=STACKS_DATA.map(s=>'<div class="sk">'
-    +'<div class="sk-goal">'+s.goal+'</div>'
-    +'<div class="sk-name">'+s.name+'</div>'
-    +'<div class="sk-peps">'+s.peps.map(p=>'<span class="sk-p">'+p+'</span>').join('')+'</div>'
-    +'<div class="sk-rat">'+s.rationale+'</div>'
-    +'<div class="sk-proto"><div class="sk-pt">Protocol</div>'+s.proto.split('\n').join('<br>')+'</div>'
-    +'</div>').join('');
+  if(!grid) return;
+  grid.innerHTML=STACKS_DATA.map((s,i)=>{
+    const locked=(typeof canViewStack==='function')&&!canViewStack(i);
+    if(locked){
+      return '<div class="sk sk-locked" onclick="openPaywall(\'stack\')">'
+        +'<div class="pc-lock-badge">🔒 Pro</div>'
+        +'<div class="sk-goal">'+s.goal+'</div>'
+        +'<div class="sk-name">'+s.name+'</div>'
+        +'<div class="sk-peps">'+s.peps.map(p=>'<span class="sk-p">'+p+'</span>').join('')+'</div>'
+        +'<div class="sk-rat pc-blur">'+s.rationale+'</div>'
+        +'<div class="sk-proto pc-blur"><div class="sk-pt">Protocol</div>'+s.proto.split('\n').join('<br>')+'</div>'
+        +'</div>';
+    }
+    return '<div class="sk">'
+      +'<div class="sk-goal">'+s.goal+'</div>'
+      +'<div class="sk-name">'+s.name+'</div>'
+      +'<div class="sk-peps">'+s.peps.map(p=>'<span class="sk-p">'+p+'</span>').join('')+'</div>'
+      +'<div class="sk-rat">'+s.rationale+'</div>'
+      +'<div class="sk-proto"><div class="sk-pt">Protocol</div>'+s.proto.split('\n').join('<br>')+'</div>'
+      +'</div>';
+  }).join('');
 }
 
 // RESEARCH HUB

@@ -400,3 +400,11 @@ footer{border-top:1px solid var(--b1);padding:48px 64px 36px;max-width:1400px;ma
 /* AI quota line */
 .ai-quota{font-size:11.5px;color:var(--t3);margin-top:8px;text-align:center}
 .ai-quota a{color:var(--t1);font-weight:600;cursor:pointer;text-decoration:underline}
+
+/* Locked stack cards */
+.sk-locked{position:relative;cursor:pointer}
+.sk-locked:hover{border-color:rgba(255,255,255,.22)}
+
+/* Plan usage counters (tracker, bookmarks) */
+.plan-count{font-size:11.5px;color:var(--t3);font-weight:500}
+.plan-count a{color:var(--t1);text-decoration:underline;cursor:pointer}

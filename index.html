@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-<link rel="stylesheet" href="styles.css?v=1785291397">
+<link rel="stylesheet" href="styles.css?v=1785365981">
 </head>
 <body>
 <div class="agegate-ov" id="ageGateOverlay">
@@ -252,12 +252,12 @@
     </div>
 
     <div class="trk-panel" id="trk-regimen">
-      <button class="btn-hero bh1" onclick="openRegimenModal()">+ Add a dose to your regimen</button>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><button class="btn-hero bh1" onclick="openRegimenModal()">+ Add a dose to your regimen</button><span class="plan-count" id="regimenCount"></span></div>
       <div id="regimenList" style="margin-top:16px"></div>
     </div>
 
     <div class="trk-panel" id="trk-vials">
-      <button class="btn-hero bh1" onclick="openVialModal()">+ Add a vial</button>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><button class="btn-hero bh1" onclick="openVialModal()">+ Add a vial</button><span class="plan-count" id="vialCount"></span></div>
       <div id="vialList" style="margin-top:16px"></div>
     </div>
   </div>
@@ -293,11 +293,16 @@
           <div class="pf"><span class="pfy">✓</span> Search and filter</div>
           <div class="pf"><span class="pfy">✓</span> Reconstitution calculator</div>
           <div class="pf"><span class="pfy">✓</span> 1 free Protocol Builder generation</div>
-          <div class="pf"><span class="pfy">✓</span> Browse all curated stacking guides</div>
+          <div class="pf"><span class="pfy">✓</span> 2 curated stacking guides</div>
+          <div class="pf"><span class="pfy">✓</span> 5 bookmarks</div>
+          <div class="pf"><span class="pfy">✓</span> Dose Tracker (2 doses, 1 vial)</div>
           <div class="pf"><span class="pfn">✕</span> Full database (80 compounds)</div>
           <div class="pf"><span class="pfn">✕</span> Unlimited streaming AI</div>
           <div class="pf"><span class="pfn">✕</span> Unlimited Protocol Builder</div>
           <div class="pf"><span class="pfn">✕</span> Dose Tracker cloud sync</div>
+          <div class="pf"><span class="pfn">✕</span> All 6 stacking guides</div>
+          <div class="pf"><span class="pfn">✕</span> Unlimited bookmarks</div>
+          <div class="pf"><span class="pfn">✕</span> Unlimited Dose Tracker</div>
           <div class="pf"><span class="pfn">✕</span> Research Hub</div>
         </div>
       </div>
@@ -314,10 +319,9 @@
           <div class="pf"><span class="pfy">✓</span> Unlimited Protocol Builder</div>
           <div class="pf"><span class="pfy">✓</span> Dose Tracker cloud sync</div>
           <div class="pf"><span class="pfy">✓</span> Full Research Hub</div>
-          <div class="pf"><span class="pfy">✓</span> Unlimited bookmarks + history</div>
-          <div class="pf"><span class="pfy">✓</span> Markdown + tables in AI</div>
-          <div class="pf"><span class="pfy">✓</span> Priority AI processing</div>
-          <div class="pf"><span class="pfy">✓</span> Conversation export</div>
+          <div class="pf"><span class="pfy">✓</span> Unlimited bookmarks</div>
+          <div class="pf"><span class="pfy">✓</span> Unlimited Dose Tracker + vial inventory</div>
+          <div class="pf"><span class="pfy">✓</span> All 6 curated stacking guides</div>
         </div>
       </div>
     </div>
@@ -597,12 +601,12 @@
   </div>
 </div>
 
-<script src="legal.js?v=1785291397"></script>
+<script src="legal.js?v=1785365981"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js?v=1785291397"></script>
-<script src="billing.js?v=1785291397"></script>
-<script src="tracker.js?v=1785291397"></script>
-<script src="data.js?v=1785291397"></script>
-<script src="app.js?v=1785291397"></script>
+<script src="auth.js?v=1785365981"></script>
+<script src="billing.js?v=1785365981"></script>
+<script src="tracker.js?v=1785365981"></script>
+<script src="data.js?v=1785365981"></script>
+<script src="app.js?v=1785365981"></script>
 </body>
 </html>

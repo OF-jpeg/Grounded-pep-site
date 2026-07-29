@@ -37,8 +37,16 @@ function dateStrOffset(daysAgo) {
 }
 
 // ── Best-effort Supabase sync (silent failure if tables don't exist) ──
+// Cloud sync is a Pro feature. Free users keep everything in localStorage,
+// which still works fully — it just stays on one device.
+function canCloudSync() {
+  if (typeof currentUser === 'undefined' || !currentUser) return false;
+  if (typeof sb === 'undefined') return false;
+  if (typeof isPro === 'function' && !isPro()) return false;
+  return true;
+}
 async function syncRegimenToSupabase(item) {
-  if (typeof currentUser === 'undefined' || !currentUser || typeof sb === 'undefined') return;
+  if (!canCloudSync()) return;
   try {
     await sb.from('tracker_regimen').upsert({
       id: item.id, user_id: currentUser.id, peptide_name: item.peptide,
@@ -47,7 +55,7 @@ async function syncRegimenToSupabase(item) {
   } catch (e) {}
 }
 async function syncLogToSupabase(regimenId, date, status) {
-  if (typeof currentUser === 'undefined' || !currentUser || typeof sb === 'undefined') return;
+  if (!canCloudSync()) return;
   try {
     await sb.from('tracker_log').upsert({
       user_id: currentUser.id, regimen_id: regimenId, log_date: date, status
@@ -55,7 +63,7 @@ async function syncLogToSupabase(regimenId, date, status) {
   } catch (e) {}
 }
 async function syncVialToSupabase(vial) {
-  if (typeof currentUser === 'undefined' || !currentUser || typeof sb === 'undefined') return;
+  if (!canCloudSync()) return;
   try {
     await sb.from('tracker_vials').upsert({
       id: vial.id, user_id: currentUser.id, peptide_name: vial.peptide,
@@ -73,6 +81,34 @@ function renderTracker() {
   renderRegimenList();
   renderVialList();
   updateTrackerStats();
+  updatePlanCounts();
+}
+
+// Shows "2 of 2 doses used" style counters so free limits are visible upfront
+function updatePlanCounts() {
+  const pro = (typeof isPro === 'function') ? isPro() : false;
+  const regEl = document.getElementById('regimenCount');
+  const vialEl = document.getElementById('vialCount');
+  if (regEl) {
+    if (pro) { regEl.textContent = ''; }
+    else {
+      const used = getRegimen().length;
+      const max = FREE_LIMITS.regimenItems;
+      regEl.innerHTML = used >= max
+        ? `Limit reached (${used}/${max}) · <a onclick="show('pricing')">Upgrade</a>`
+        : `${used} of ${max} on the free plan`;
+    }
+  }
+  if (vialEl) {
+    if (pro) { vialEl.textContent = ''; }
+    else {
+      const used = getVials().length;
+      const max = FREE_LIMITS.vials;
+      vialEl.innerHTML = used >= max
+        ? `Limit reached (${used}/${max}) · <a onclick="show('pricing')">Upgrade</a>`
+        : `${used} of ${max} on the free plan`;
+    }
+  }
 }
 
 function populatePeptideDatalist() {
@@ -210,6 +246,11 @@ function updateTrackerStats() {
 
 // ── Regimen management ────────────────────────────────────────────────────
 function openRegimenModal(id) {
+  // Adding a new dose is capped on the free plan; editing existing is always allowed
+  if (!id && typeof canAddRegimenItem === 'function' && !canAddRegimenItem(getRegimen().length)) {
+    openPaywall('regimen');
+    return;
+  }
   editingRegimenId = id || null;
   const title = document.getElementById('regimenModalTitle');
   if (id) {
@@ -245,6 +286,12 @@ async function saveRegimenItem() {
     const item = regimen.find(r => r.id === editingRegimenId);
     if (item) { item.peptide = peptide; item.dose = dose; item.time = time; }
   } else {
+    // Backstop in case the modal was opened before a plan change
+    if (typeof canAddRegimenItem === 'function' && !canAddRegimenItem(regimen.length)) {
+      closeRegimenModal();
+      openPaywall('regimen');
+      return;
+    }
     regimen.push({ id: 'r' + Date.now(), peptide, dose, time, createdAt: Date.now() });
   }
   lsSet('grounded_regimen', regimen);
@@ -253,6 +300,7 @@ async function saveRegimenItem() {
   renderTodayList();
   renderWeekStrip();
   updateTrackerStats();
+  updatePlanCounts();
   toast('Dose saved ✓');
   const saved = regimen[regimen.length - 1];
   await syncRegimenToSupabase(editingRegimenId ? regimen.find(r => r.id === editingRegimenId) : saved);
@@ -283,8 +331,9 @@ async function deleteRegimenItem(id) {
   renderTodayList();
   renderWeekStrip();
   updateTrackerStats();
+  updatePlanCounts();
   toast('Removed from regimen');
-  if (typeof currentUser !== 'undefined' && currentUser && typeof sb !== 'undefined') {
+  if (canCloudSync()) {
     try { await sb.from('tracker_regimen').delete().eq('id', id); } catch (e) {}
   }
 }
@@ -310,6 +359,11 @@ function calcVialCost() {
   }
 }
 function openVialModal() {
+  // Vial inventory is capped on the free plan
+  if (typeof canAddVial === 'function' && !canAddVial(getVials().length)) {
+    openPaywall('vial');
+    return;
+  }
   document.getElementById('vialPeptide').value = '';
   document.getElementById('vialMg').value = '';
   document.getElementById('vialWater').value = '';
@@ -334,6 +388,12 @@ async function saveVial() {
   if (!peptide || !totalMg || !waterMl) { toast('Enter peptide, total mg, and water volume'); return; }
 
   const vials = getVials();
+  // Backstop in case the modal was opened before a plan change
+  if (typeof canAddVial === 'function' && !canAddVial(vials.length)) {
+    closeVialModal();
+    openPaywall('vial');
+    return;
+  }
   const vial = {
     id: 'v' + Date.now(), peptide, totalMg, waterMl, cost, doseMcg,
     expirationDate: expirationDate || null, createdAt: Date.now()
@@ -342,6 +402,7 @@ async function saveVial() {
   lsSet('grounded_vials', vials);
   closeVialModal();
   renderVialList();
+  updatePlanCounts();
   toast('Vial added ✓');
   await syncVialToSupabase(vial);
 }
@@ -376,8 +437,9 @@ async function deleteVial(id) {
   vials = vials.filter(v => v.id !== id);
   lsSet('grounded_vials', vials);
   renderVialList();
+  updatePlanCounts();
   toast('Vial removed');
-  if (typeof currentUser !== 'undefined' && currentUser && typeof sb !== 'undefined') {
+  if (canCloudSync()) {
     try { await sb.from('tracker_vials').delete().eq('id', id); } catch (e) {}
   }
 }
