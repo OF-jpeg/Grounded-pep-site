@@ -45,6 +45,64 @@ function exitSite() {
 
 // ── Legal document content ───────────────────────────────────────────
 const LEGAL_DOCS = {
+  about: {
+    title: 'About Grounded',
+    html: `
+      <h3>Why this exists</h3>
+      <p>Peptide information online is scattered across forum threads, vendor marketing, and dense research papers. Beginners get overwhelmed, and experienced researchers waste time re-deriving the same answers. Grounded pulls it into one place and explains it at whatever level you're at.</p>
+      <h3>What's here</h3>
+      <ul>
+        <li><strong>80 compound profiles</strong> across 11 categories — mechanism, dosing, half-life, storage, reconstitution, benefits, risks, and research status for each</li>
+        <li><strong>An AI research guide</strong> that adapts its depth to your experience level and answers follow-up questions conversationally</li>
+        <li><strong>Protocol Builder</strong> that generates educational research protocols based on your goal</li>
+        <li><strong>Dose Tracker</strong> with streak tracking, vial inventory, and a reconstitution calculator</li>
+        <li><strong>Stacking guides</strong> explaining why specific combinations work together mechanistically</li>
+      </ul>
+      <h3>What Grounded is not</h3>
+      <p>We don't sell peptides, recommend vendors, or provide medical advice. This is a reference and education tool. Every protocol decision should involve a licensed healthcare professional who knows your situation.</p>
+      <h3>How it's built</h3>
+      <p>Compound data is compiled from published research, clinical trial results, and regulatory documentation. Research status labels distinguish preclinical work from human trials from approved pharmaceuticals, so you can weigh the evidence behind any given compound.</p>
+    `
+  },
+  faq: {
+    title: 'Frequently Asked Questions',
+    html: `
+      <h3>Is using peptides legal?</h3>
+      <p>It depends heavily on the compound and your jurisdiction. Some peptides on this platform are FDA-approved pharmaceuticals available by prescription. Many others are sold as "research chemicals" and are not approved for human consumption. Laws differ by country and state. Research the legal status where you live, and note that possession, import, and use can each be treated differently.</p>
+      <h3>Are peptides safe?</h3>
+      <p>Safety varies enormously between compounds. Some have decades of clinical data behind them; others have only animal studies. Each compound profile lists its research status and known side effects so you can judge for yourself. Purity is a separate risk — unregulated products may be underdosed, contaminated, or not contain what's claimed.</p>
+      <h3>How do I know if a source is legitimate?</h3>
+      <p>Look for third-party lab testing with published certificates of analysis (COAs) that match the specific batch you're buying, not a generic sample. Be wary of prices far below market, missing contact information, or vendors making explicit medical claims. We don't recommend or endorse any vendor.</p>
+      <h3>What does reconstitution mean?</h3>
+      <p>Most research peptides arrive as a freeze-dried (lyophilized) powder that must be mixed with bacteriostatic water before use. The Reconstitution Calculator in the Dose Tracker converts your vial size, water volume, and target dose into the exact number of units to draw on an insulin syringe.</p>
+      <h3>What's a half-life and why does it matter?</h3>
+      <p>Half-life is how long it takes for half the compound to clear your system. It largely determines dosing frequency — a compound with a 30-minute half-life needs far more frequent dosing than one lasting seven days. Each profile lists this.</p>
+      <h3>Where should a beginner start?</h3>
+      <p>Read the full profile of any compound you're considering, including the side effects and research status sections. Ask the AI Guide to explain anything unclear — set your experience level to "New to peptides" during onboarding and it'll adjust how it explains things. Then talk to a healthcare professional before acting on any of it.</p>
+      <h3>Is my data private?</h3>
+      <p>Your account details, tracker data, and conversations are tied to your account and not sold to third parties. See the Privacy Policy for specifics on what's collected and how it's used.</p>
+      <h3>Do I need to pay to use Grounded?</h3>
+      <p>No. The free plan includes 15 compound profiles, 10 AI messages per day, the reconstitution calculator, basic dose tracking, and two stacking guides. Pro unlocks the full database, unlimited AI, and the rest of the tools.</p>
+    `
+  },
+  contact: {
+    title: 'Contact',
+    html: `
+      <h3>Get in touch</h3>
+      <p>The fastest way to reach us — and the best place for questions, feedback, or bug reports — is our Discord community.</p>
+      <p><a href="https://discord.gg/2XcHagbE39" target="_blank" rel="noopener noreferrer">Join the Grounded Discord →</a></p>
+      <h3>What to reach out about</h3>
+      <ul>
+        <li><strong>Found an error?</strong> If something in a compound profile looks wrong, tell us. Accuracy matters more than being fast.</li>
+        <li><strong>Missing a compound?</strong> Suggest it and we'll look into adding it.</li>
+        <li><strong>Bug or broken feature?</strong> Let us know what you were doing when it broke.</li>
+        <li><strong>Account or billing questions.</strong></li>
+      </ul>
+      <h3>What we can't help with</h3>
+      <p>We can't give medical advice, recommend vendors or sources, or advise on the legality of any compound in your jurisdiction. Those questions need a licensed professional who knows your situation.</p>
+    `
+  },
+
   privacy: {
     title: 'Privacy Policy',
     html: `

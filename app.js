@@ -55,7 +55,7 @@ function show(pg){
   const nls=document.querySelectorAll('.nl');
   if(idx>=0&&nls[idx]) nls[idx].classList.add('on');
   window.scrollTo(0,0);
-  if(pg==='db') renderDB();
+  if(pg==='db'){renderDB();renderRecent();}
   if(pg==='stacks') renderStacks();
   if(pg==='research') renderResearch();
   if(pg==='tracker') renderTracker();
@@ -220,6 +220,7 @@ function openM(id){
     return;
   }
   curModal=id;
+  pushRecent(id);
   const c=CATS[p.cat]||{l:p.cat,c:'#fff',bg:'rgba(255,255,255,.08)',b:'rgba(255,255,255,.2)'};
   document.getElementById('mBadge').innerHTML='<span style="background:'+c.bg+';border:1px solid '+c.b+';color:'+c.c+';font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;padding:3px 9px;border-radius:50px;display:inline-block;margin-bottom:14px">'+c.l+'</span>';
   document.getElementById('mName').textContent=p.n;
@@ -238,6 +239,7 @@ function openM(id){
   const rels=PEPS.filter(x=>p.rel&&p.rel.includes(x.id));
   document.getElementById('mRel').innerHTML=rels.length?rels.map(r=>{const rc=CATS[r.cat]||{c:'#fff',l:r.cat};return'<div class="rel-c" onclick="openM(\''+r.id+'\')"><div style="font-family:var(--fd);font-size:14px;font-weight:700;color:var(--t1);margin-bottom:3px">'+r.n+'</div><div style="font-size:11px;color:'+rc.c+'">'+rc.l+'</div><div style="font-size:11px;color:var(--t3);margin-top:4px">'+r.hl+'</div></div>'}).join(''):'<p style="font-size:13px;color:var(--t3)">No related compounds listed.</p>';
   setTimeout(()=>{const bar=document.getElementById('mHLbar');if(bar)bar.style.width='50%';},100);
+  populateCompareSelect(id);
   mTab('ov',document.querySelector('.mt'));
   document.getElementById('mOverlay').classList.add('open');
   document.body.style.overflow='hidden';
@@ -496,6 +498,100 @@ function renderMobileAuth(){
   }
 }
 
+// ── Recently viewed compounds ─────────────────────────────────────────
+const RECENT_KEY='grounded_recent';
+const MAX_RECENT=6;
+function getRecent(){
+  try{ return JSON.parse(localStorage.getItem(RECENT_KEY)||'[]'); }catch(e){ return []; }
+}
+function pushRecent(id){
+  try{
+    let list=getRecent().filter(x=>x!==id);
+    list.unshift(id);
+    list=list.slice(0,MAX_RECENT);
+    localStorage.setItem(RECENT_KEY,JSON.stringify(list));
+  }catch(e){}
+}
+function renderRecent(){
+  const sec=document.getElementById('recentSection');
+  const row=document.getElementById('recentRow');
+  if(!sec||!row) return;
+  const ids=getRecent();
+  const items=ids.map(id=>PEPS.find(p=>p.id===id)).filter(Boolean);
+  if(items.length<2){ sec.style.display='none'; return; }
+  row.innerHTML=items.map(p=>{
+    const c=CATS[p.cat]||{c:'#fff',l:p.cat};
+    return '<div class="recent-chip" onclick="openM(\''+p.id+'\')">'
+      +'<div class="recent-name">'+p.n+'</div>'
+      +'<div class="recent-cat" style="color:'+c.c+'">'+c.l+'</div></div>';
+  }).join('');
+  sec.style.display='block';
+}
+
+// ── Side-by-side compound comparison ──────────────────────────────────
+function populateCompareSelect(currentId){
+  const sel=document.getElementById('cmpSelect');
+  if(!sel) return;
+  const others=PEPS.filter(p=>p.id!==currentId).sort((a,b)=>a.n.localeCompare(b.n));
+  sel.innerHTML='<option value="">Choose a compound…</option>'
+    +others.map(p=>'<option value="'+p.id+'">'+p.n+'</option>').join('');
+  document.getElementById('cmpResult').innerHTML='';
+}
+
+function renderCompare(){
+  const sel=document.getElementById('cmpSelect');
+  const out=document.getElementById('cmpResult');
+  if(!sel||!out) return;
+  const otherId=sel.value;
+  if(!otherId){ out.innerHTML=''; return; }
+
+  // Comparing against a locked compound requires Pro
+  if(typeof canOpenCompound==='function'&&!canOpenCompound(otherId)){
+    out.innerHTML='<div class="cmp-locked"><div class="pc-lock-badge" style="position:static;display:inline-block;margin-bottom:10px">🔒 Pro</div>'
+      +'<p style="font-size:13px;color:var(--t2);line-height:1.6">This compound is Pro-only. Upgrade to compare it.</p>'
+      +'<button class="btn-hero bh1" style="margin-top:14px" onclick="closeM();show(\'pricing\')">See Pro plans</button></div>';
+    return;
+  }
+
+  const a=PEPS.find(p=>p.id===curModal);
+  const b=PEPS.find(p=>p.id===otherId);
+  if(!a||!b){ out.innerHTML=''; return; }
+
+  const ca=CATS[a.cat]||{l:a.cat,c:'#fff'};
+  const cb=CATS[b.cat]||{l:b.cat,c:'#fff'};
+  const rows=[
+    ['Category','<span style="color:'+ca.c+'">'+ca.l+'</span>','<span style="color:'+cb.c+'">'+cb.l+'</span>'],
+    ['Typical dose',a.dose,b.dose],
+    ['Frequency',a.freq,b.freq],
+    ['Half-life',a.hl,b.hl],
+    ['Route',a.admin,b.admin],
+    ['Research status',a.status,b.status],
+  ];
+
+  out.innerHTML='<div class="cmp-head"><div class="cmp-name">'+a.n+'</div><div class="cmp-vs">vs</div><div class="cmp-name">'+b.n+'</div></div>'
+    +'<div class="cmp-table">'
+    +rows.map(r=>'<div class="cmp-row"><div class="cmp-lbl">'+r[0]+'</div>'
+      +'<div class="cmp-val">'+r[1]+'</div><div class="cmp-val">'+r[2]+'</div></div>').join('')
+    +'</div>'
+    +'<div class="cmp-mechs">'
+    +'<div class="cmp-mech"><div class="cmp-mech-title">'+a.n+' — mechanism</div><p>'+a.mech+'</p></div>'
+    +'<div class="cmp-mech"><div class="cmp-mech-title">'+b.n+' — mechanism</div><p>'+b.mech+'</p></div>'
+    +'</div>'
+    +'<button class="ba" style="margin-top:16px" onclick="askCompare(\''+a.n.replace(/'/g,"\\'")+'\',\''+b.n.replace(/'/g,"\\'")+'\')">Ask the AI to compare these</button>';
+}
+
+function askCompare(nameA,nameB){
+  closeM();
+  show('ai');
+  setTimeout(()=>{
+    const inp=document.getElementById('aiInp');
+    if(inp){
+      inp.value='Compare '+nameA+' and '+nameB+'. Cover mechanism differences, which goals each suits better, and whether they can be stacked.';
+      sendAI();
+    }
+  },300);
+}
+
 // Builds the system prompt, layering in personalization when available
 function getSYS(){
   let prompt=SYS;
@@ -513,24 +609,63 @@ function getSYS(){
   return prompt;
 }
 
+// ── Chat persistence ──────────────────────────────────────────────────
+// Conversations were previously in-memory only and lost on refresh, which
+// made the sidebar misleading and defeated the export feature.
+const CHATS_KEY='grounded_chats';
+const MAX_STORED_CHATS=25;
+function saveChats(){
+  try{
+    // Cap stored history so localStorage can't grow without bound
+    const trimmed=chatSessions.slice(0,MAX_STORED_CHATS);
+    localStorage.setItem(CHATS_KEY,JSON.stringify({chats:trimmed,active:Math.min(curChat,trimmed.length-1)}));
+  }catch(e){ /* quota exceeded — keep working in memory */ }
+}
+function loadChats(){
+  try{
+    const raw=localStorage.getItem(CHATS_KEY);
+    if(!raw) return false;
+    const data=JSON.parse(raw);
+    if(Array.isArray(data.chats)&&data.chats.length){
+      chatSessions=data.chats;
+      curChat=Math.max(0,Math.min(data.active||0,chatSessions.length-1));
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+
 function initAI(){
+  const restored=loadChats();
   if(!chatSessions.length){
     chatSessions=[{id:0,title:'New conversation',msgs:[]}];
-    renderChatList();
+    curChat=0;
   }
+  renderChatList();
+  if(restored) renderMsgs();
 }
 function renderChatList(){
   const list=document.getElementById('aiList');
   if(!list) return;
   list.innerHTML=chatSessions.map((s,i)=>'<div class="ai-li'+(i===curChat?' on':'')+'" onclick="switchChat('+i+')">'
     +'<div class="ai-li-t">'+(s.title||'New conversation')+'</div>'
+    +'<button class="ai-li-del" onclick="deleteChat(event,'+i+')" aria-label="Delete conversation">✕</button>'
     +'</div>').join('');
 }
-function switchChat(i){curChat=i;renderChatList();renderMsgs();}
+function switchChat(i){curChat=i;renderChatList();renderMsgs();saveChats();}
 function newChat(){
   chatSessions.unshift({id:Date.now(),title:'New conversation',msgs:[]});
-  curChat=0;renderChatList();renderMsgs();
+  curChat=0;renderChatList();renderMsgs();saveChats();
   toast('New chat started');
+}
+function deleteChat(e,i){
+  e.stopPropagation();
+  chatSessions.splice(i,1);
+  if(!chatSessions.length) chatSessions=[{id:Date.now(),title:'New conversation',msgs:[]}];
+  if(curChat>=chatSessions.length) curChat=chatSessions.length-1;
+  else if(curChat>i) curChat--;
+  renderChatList();renderMsgs();saveChats();
+  toast('Conversation deleted');
 }
 function renderMsgs(){
   const msgs=document.getElementById('aiMsgs');
@@ -589,6 +724,7 @@ async function sendAI(){
     renderChatList();
   }
   addBub('user',msg,false);
+  saveChats();
   inp.value='';inp.style.height='24px';
   btn.disabled=true;
   if(sugg) sugg.style.display='none';
@@ -617,6 +753,7 @@ async function sendAI(){
     }
     if(innerEl) innerEl.innerHTML=rMD(fullText);
     chatSessions[curChat].msgs.push({role:'ai',content:fullText});
+    saveChats();
   }catch(e){
     document.getElementById('aiTyping').classList.remove('show');
     if(!innerEl) innerEl=addBub('ai','',false);
