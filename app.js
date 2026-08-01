@@ -469,9 +469,11 @@ function mobileGo(pg){
   show(pg);
 }
 function syncMobileNavActive(){
-  const keys=['home','db','ai','proto','stacks','tracker','research','pricing'];
-  const links=document.querySelectorAll('.mnav-link');
-  links.forEach((l,i)=>l.classList.toggle('on',keys[i]===currentPage));
+  // Matches on data-page rather than index, so adding non-page links
+  // (like the Discord invite) can't break the highlighting
+  document.querySelectorAll('.mnav-link[data-page]').forEach(l=>{
+    l.classList.toggle('on',l.dataset.page===currentPage);
+  });
 }
 // Mirrors sign-in state into the drawer footer
 function renderMobileAuth(){
