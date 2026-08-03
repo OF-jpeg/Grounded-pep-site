@@ -517,3 +517,21 @@ footer{border-top:1px solid var(--b1);padding:48px 64px 36px;max-width:1400px;ma
 .ai-li-del{opacity:0;width:22px;height:22px;border-radius:6px;background:var(--g2);border:1px solid var(--b1);color:var(--t3);font-size:11px;cursor:pointer;flex-shrink:0;transition:all .15s;display:flex;align-items:center;justify-content:center}
 .ai-li:hover .ai-li-del{opacity:1}
 .ai-li-del:hover{color:#FB7185;border-color:rgba(244,63,94,.35)}
+
+/* ═══════════ RESEARCH LINKS & CITATIONS ═══════════ */
+.res-links{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.res-link{display:flex;align-items:center;gap:11px;padding:13px 14px;background:var(--g1);border:1px solid var(--b1);border-radius:var(--r);text-decoration:none;transition:all .16s}
+.res-link:hover{border-color:var(--b2);transform:translateY(-1px);background:var(--g2)}
+.res-link-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.res-link-body{flex:1;min-width:0}
+.res-link-name{font-family:var(--fd);font-size:13px;font-weight:600;color:var(--t1)}
+.res-link-desc{font-size:11px;color:var(--t3);margin-top:2px;line-height:1.4}
+.res-link-arrow{color:var(--t3);font-size:13px;flex-shrink:0}
+.res-link:hover .res-link-arrow{color:var(--t1)}
+.cite-list{display:flex;flex-direction:column;gap:9px}
+.cite{display:block;padding:14px 16px;background:var(--g1);border:1px solid var(--b1);border-radius:var(--r);text-decoration:none;transition:all .16s}
+.cite:hover{border-color:var(--b2);background:var(--g2)}
+.cite-title{font-size:13px;font-weight:600;color:var(--t1);line-height:1.45}
+.cite-meta{font-size:11px;color:var(--t3);margin-top:5px;font-family:var(--fm)}
+.cite-note{font-size:12px;color:var(--t2);margin-top:7px;line-height:1.55;padding-top:7px;border-top:1px solid var(--b1)}
+@media(max-width:640px){.res-links{grid-template-columns:1fr}}

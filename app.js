@@ -239,6 +239,8 @@ function openM(id){
   const rels=PEPS.filter(x=>p.rel&&p.rel.includes(x.id));
   document.getElementById('mRel').innerHTML=rels.length?rels.map(r=>{const rc=CATS[r.cat]||{c:'#fff',l:r.cat};return'<div class="rel-c" onclick="openM(\''+r.id+'\')"><div style="font-family:var(--fd);font-size:14px;font-weight:700;color:var(--t1);margin-bottom:3px">'+r.n+'</div><div style="font-size:11px;color:'+rc.c+'">'+rc.l+'</div><div style="font-size:11px;color:var(--t3);margin-top:4px">'+r.hl+'</div></div>'}).join(''):'<p style="font-size:13px;color:var(--t3)">No related compounds listed.</p>';
   setTimeout(()=>{const bar=document.getElementById('mHLbar');if(bar)bar.style.width='50%';},100);
+  renderResearchLinks(p);
+  renderCitations(p);
   populateCompareSelect(id);
   mTab('ov',document.querySelector('.mt'));
   document.getElementById('mOverlay').classList.add('open');
@@ -590,6 +592,73 @@ function askCompare(nameA,nameB){
       sendAI();
     }
   },300);
+}
+
+// ── Research database links ───────────────────────────────────────────
+// Builds live search URLs rather than hardcoding specific paper IDs, so
+// nothing can go stale or point at a paper that doesn't exist. Results
+// stay current as new studies are published.
+function buildResearchLinks(p){
+  // Prefer the formal/full name for search accuracy, fall back to the short name
+  const primary=(p.fn||p.n).replace(/\s*\([^)]*\)\s*/g,' ').trim();
+  const q=encodeURIComponent(primary);
+  const qShort=encodeURIComponent(p.n);
+  return [
+    {
+      name:'PubMed',
+      desc:'Peer-reviewed studies and abstracts',
+      url:'https://pubmed.ncbi.nlm.nih.gov/?term='+q,
+      color:'#60A5FA'
+    },
+    {
+      name:'ClinicalTrials.gov',
+      desc:'Registered human trials, past and ongoing',
+      url:'https://clinicaltrials.gov/search?intr='+qShort,
+      color:'#34D399'
+    },
+    {
+      name:'Europe PMC',
+      desc:'Open-access full-text papers',
+      url:'https://europepmc.org/search?query='+q,
+      color:'#C4B5FD'
+    },
+    {
+      name:'Google Scholar',
+      desc:'Broad academic search including citations',
+      url:'https://scholar.google.com/scholar?q='+q,
+      color:'#FCD34D'
+    }
+  ];
+}
+
+function renderResearchLinks(p){
+  const wrap=document.getElementById('mResearchLinks');
+  if(!wrap) return;
+  wrap.innerHTML=buildResearchLinks(p).map(l=>
+    '<a class="res-link" href="'+l.url+'" target="_blank" rel="noopener noreferrer">'
+    +'<div class="res-link-dot" style="background:'+l.color+'"></div>'
+    +'<div class="res-link-body"><div class="res-link-name">'+l.name+'</div>'
+    +'<div class="res-link-desc">'+l.desc+'</div></div>'
+    +'<div class="res-link-arrow">↗</div></a>'
+  ).join('');
+}
+
+// Renders curated citations when a compound has them (see CITATIONS in data.js)
+function renderCitations(p){
+  const wrap=document.getElementById('mCitations');
+  if(!wrap) return;
+  const cites=(typeof CITATIONS!=='undefined')?CITATIONS[p.id]:null;
+  if(!cites||!cites.length){ wrap.innerHTML=''; return; }
+  wrap.innerHTML='<div class="sh2" style="margin-top:22px">Key papers</div>'
+    +'<div class="cite-list">'
+    +cites.map(c=>
+      '<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/'+c.pmid+'/" target="_blank" rel="noopener noreferrer">'
+      +'<div class="cite-title">'+c.title+'</div>'
+      +'<div class="cite-meta">'+c.journal+' · '+c.year+' · PMID '+c.pmid+'</div>'
+      +(c.note?'<div class="cite-note">'+c.note+'</div>':'')
+      +'</a>'
+    ).join('')
+    +'</div>';
 }
 
 // Builds the system prompt, layering in personalization when available

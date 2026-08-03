@@ -114,3 +114,41 @@ const RESEARCH_DATA=[
   {cat:'Metabolic',catC:'#FCD34D',title:'Semaglutide Cardiovascular Outcomes: SELECT Trial 2-Year Follow-up',date:'JAMA, 2024',abstract:'The SELECT trial confirms semaglutide reduces major adverse cardiovascular events by 20% in adults with overweight/obesity and established CVD. Secondary endpoints including kidney function and quality of life all showed significant improvements.',journal:'JAMA'},
   {cat:'Longevity',catC:'#6EE7B7',title:'SS-31 Restores Mitochondrial Function in Aged Cardiac Tissue',date:'Nat Commun, 2024',abstract:'Phase II trial demonstrates SS-31 administration significantly improved exercise tolerance and reduced cardiac oxidative stress markers in elderly adults with heart failure. Mitochondrial coupling efficiency improved 28% vs placebo.',journal:'Nat Commun'}
 ];
+// ══════════════════════════════════════════════════════════════════════
+//  CURATED CITATIONS
+// ══════════════════════════════════════════════════════════════════════
+// Every PMID here has been individually verified to exist and match its
+// listed title/journal/year. Do NOT add entries from memory — look them
+// up on pubmed.ncbi.nlm.nih.gov and confirm before adding. A wrong PMID
+// sends readers to an unrelated paper and destroys trust.
+// Compounds without an entry fall back to the live database search links.
+const CITATIONS = {
+  bpc157: [
+    {pmid:'40756949', title:'Emerging Use of BPC-157 in Orthopaedic Sports Medicine: A Systematic Review', journal:'Systematic Review', year:'2025',
+     note:'Systematic review of the available literature through June 2024 — a good starting point for understanding what has and has not actually been demonstrated.'},
+    {pmid:'40005999', title:'Multifunctionality and Possible Medical Application of the BPC 157 Peptide — Literature and Patent Review', journal:'Pharmaceuticals', year:'2025',
+     note:'Broad review covering mechanisms including nitric oxide synthase interaction and antioxidant pathways.'},
+    {pmid:'30915550', title:'Gastric pentadecapeptide body protection compound BPC 157 and its role in accelerating musculoskeletal soft tissue healing', journal:'Cell and Tissue Research', year:'2019',
+     note:'Focuses on the angiogenesis and soft-tissue healing mechanisms most often cited for injury recovery use.'},
+    {pmid:'34324435', title:'Intra-Articular Injection of BPC 157 for Multiple Types of Knee Pain', journal:'Alternative Therapies in Health and Medicine', year:'2021',
+     note:'Small retrospective human study (16 patients). Limited sample size — treat as preliminary, not conclusive.'},
+    {pmid:'17186181', title:'Stable gastric pentadecapeptide BPC 157 in trials for inflammatory bowel disease', journal:'Inflammopharmacology', year:'2006',
+     note:'Early review from the primary research group, covering the IBD clinical trial work and gut-protective effects.'}
+  ],
+  semaglutide: [
+    {pmid:'33567185', title:'Once-Weekly Semaglutide in Adults with Overweight or Obesity', journal:'New England Journal of Medicine', year:'2021',
+     note:'The STEP 1 trial — 1,961 participants, 68 weeks. Mean 14.9% body weight reduction vs 2.4% placebo. This is the study behind the Wegovy approval.'},
+    {pmid:'33625476', title:'Effect of Subcutaneous Semaglutide vs Placebo as an Adjunct to Intensive Behavioral Therapy on Body Weight (STEP 3)', journal:'JAMA', year:'2021',
+     note:'Tests semaglutide combined with intensive behavioral therapy rather than standard lifestyle advice.'},
+    {pmid:'30122305', title:'Efficacy and safety of semaglutide compared with liraglutide and placebo for weight loss in patients with obesity', journal:'The Lancet', year:'2018',
+     note:'Head-to-head dose-ranging phase 2 trial against liraglutide — useful for understanding why semaglutide superseded it.'}
+  ],
+  tirzepatide: [
+    {pmid:'35658024', title:'Tirzepatide Once Weekly for the Treatment of Obesity', journal:'New England Journal of Medicine', year:'2022',
+     note:'The SURMOUNT-1 trial — 2,539 participants, 72 weeks. Weight reductions of 16.0% to 22.5% depending on dose.'},
+    {pmid:'39536238', title:'Tirzepatide for Obesity Treatment and Diabetes Prevention', journal:'New England Journal of Medicine', year:'2025',
+     note:'Three-year SURMOUNT-1 extension. Sustained weight reduction plus markedly lower progression to type 2 diabetes.'},
+    {pmid:'37385275', title:'Tirzepatide once weekly for the treatment of obesity in people with type 2 diabetes (SURMOUNT-2)', journal:'The Lancet', year:'2023',
+     note:'Extends the findings to people who also have type 2 diabetes, where weight loss is typically harder to achieve.'}
+  ]
+};
