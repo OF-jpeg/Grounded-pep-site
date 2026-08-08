@@ -52,7 +52,7 @@ const LEGAL_DOCS = {
       <p>Peptide information online is scattered across forum threads, vendor marketing, and dense research papers. Beginners get overwhelmed, and experienced researchers waste time re-deriving the same answers. Grounded pulls it into one place and explains it at whatever level you're at.</p>
       <h3>What's here</h3>
       <ul>
-        <li><strong>80 compound profiles</strong> across 11 categories — mechanism, dosing, half-life, storage, reconstitution, benefits, risks, and research status for each</li>
+        <li><strong>81 compound profiles</strong> across 11 categories — mechanism, dosing, half-life, storage, reconstitution, benefits, risks, and research status for each</li>
         <li><strong>An AI research guide</strong> that adapts its depth to your experience level and answers follow-up questions conversationally</li>
         <li><strong>Protocol Builder</strong> that generates educational research protocols based on your goal</li>
         <li><strong>Dose Tracker</strong> with streak tracking, vial inventory, and a reconstitution calculator</li>

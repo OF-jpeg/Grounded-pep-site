@@ -80,7 +80,8 @@ function buildFilters(){
   const row=document.getElementById('dbFilters');
   if(!row) return;
   const cats=[{k:'all',l:'All compounds'},...Object.entries(CATS).map(([k,v])=>({k,l:v.l}))];
-  let html=cats.map(c=>'<span class="fch'+(c.k===actFilter?' on':'')+ '" onclick="setFilter(\''+c.k+'\',this)">'+c.l+'</span>').join('');
+  let html='<span class="fch fch-popular'+(actFilter==='popular'?' on':'')+ '" onclick="setFilter(\'popular\',this)">★ Popular</span>';
+  html+=cats.map(c=>'<span class="fch'+(c.k===actFilter?' on':'')+ '" onclick="setFilter(\''+c.k+'\',this)">'+c.l+'</span>').join('');
   // Saved filter sits at the end with a live count
   html+='<span class="fch fch-saved'+(actFilter==='saved'?' on':'')+ '" onclick="setFilter(\'saved\',this)">★ Saved'
     +(bookmarks.size?' ('+bookmarks.size+')':'')+'</span>';
@@ -98,11 +99,18 @@ function renderDB(){
   const sq=q.toLowerCase();
   const sort=(document.getElementById('dbSort')||{}).value||'pop';
   let list=PEPS.filter(p=>{
-    const catOk=actFilter==='all'||(actFilter==='saved'?bookmarks.has(p.id):p.cat===actFilter);
-    const qOk=!sq||p.n.toLowerCase().includes(sq)||p.fn.toLowerCase().includes(sq)||p.ov.toLowerCase().includes(sq)||(p.bens||[]).some(b=>b.toLowerCase().includes(sq));
+    const catOk=actFilter==='all'
+      ||(actFilter==='saved'?bookmarks.has(p.id)
+      :actFilter==='popular'?(typeof POPULAR_IDS!=='undefined'&&POPULAR_IDS.includes(p.id))
+      :p.cat===actFilter);
+    const qOk=!sq||p.n.toLowerCase().includes(sq)||p.fn.toLowerCase().includes(sq)||(p.alias||'').toLowerCase().includes(sq)||p.ov.toLowerCase().includes(sq)||(p.bens||[]).some(b=>b.toLowerCase().includes(sq));
     return catOk&&qOk;
   });
-  if(sort==='az') list.sort((a,b)=>a.n.localeCompare(b.n));
+  if(actFilter==='popular'&&sort==='pop'&&typeof POPULAR_IDS!=='undefined'){
+    // Keep the curated ordering so related compounds stay grouped
+    list.sort((a,b)=>POPULAR_IDS.indexOf(a.id)-POPULAR_IDS.indexOf(b.id));
+  }
+  else if(sort==='az') list.sort((a,b)=>a.n.localeCompare(b.n));
   else if(sort==='hl') list.sort((a,b)=>a.hlh-b.hlh);
   else list.sort((a,b)=>b.pop-a.pop);
   const grid=document.getElementById('dbGrid');
@@ -137,8 +145,10 @@ function pepCardHTML(p){
       +'<div class="pcm"><div class="pcm-l">Status</div><div class="pcm-v pc-blur">'+p.status.split(' ')[0]+'</div></div>'
       +'</div></div>';
   }
+  const isPop=(typeof POPULAR_IDS!=='undefined')&&POPULAR_IDS.includes(p.id);
   return '<div class="pc" onclick="openM(\''+p.id+'\')">'
     +'<div class="pc-top"><span class="badge" style="background:'+c.bg+';border:1px solid '+c.b+';color:'+c.c+'">'+c.l+'</span>'
+    +(isPop?'<span class="pop-star" title="Commonly discussed">★</span>':'')
     +'<button class="bm'+(bm?' on':'')+ '" onclick="toggleBm(event,\''+p.id+'\')">'+(bm?'★':'☆')+'</button></div>'
     +'<div class="pc-name">'+p.n+'</div><div class="pc-fn">'+p.fn+'</div>'
     +'<div class="pc-desc">'+p.ov+'</div>'
@@ -359,14 +369,14 @@ function rMD(raw){
 // AI CHAT
 const SYS=`You are Grounded's expert AI research guide — calm, authoritative, and highly knowledgeable about peptide science.
 
-You have comprehensive expertise in 80 research peptides across all major categories:
+You have comprehensive expertise in 81 research peptides across all major categories:
 
 Growth Hormone: Ipamorelin, CJC-1295, Sermorelin, GHRP-2, GHRP-6, Hexarelin, MK-677, Tabimorelin, Alexamorelin, GRF 1-44, Somatropin (rhGH)
 Healing & Recovery: BPC-157, TB-500, Thymosin Beta-4, GHK-Cu, LL-37, KPV, ARA-290 (Cibinetide), Larazotide Acetate, Argireline, SNAP-8, Matrixyl, AHK-Cu
 Metabolic/GLP-1: Semaglutide, Tirzepatide, Liraglutide, Exenatide, Dulaglutide, Retatrutide, Cagrilintide, Survodutide, Pramlintide, Glucagon, Octreotide, Lanreotide
 Fat Loss: AOD-9604, Tesamorelin, Adipotide (FTPP)
 Muscle & Performance: IGF-1 LR3, MGF, PEG-MGF, IGF-1 DES, Follistatin 344, ACE-031
-Longevity: Epithalon, Thymalin, SS-31/Elamipretide, Vilon, FOXO4-DRI, GDF11, Klotho, NAD+, Calcitonin, Teriparatide, Abaloparatide
+Longevity: Epithalon, Thymalin, SS-31/Elamipretide, MOTS-c, Humanin, Vilon, FOXO4-DRI, GDF11, Klotho, NAD+, Calcitonin, Teriparatide, Abaloparatide
 Sleep: DSIP
 Cognitive: Semax, Selank, Dihexa, Noopept, Cerebrolysin, Cortexin, Pinealon
 Immune Support: Thymosin Alpha-1, Thymogen, Imunofan
