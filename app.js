@@ -103,7 +103,7 @@ function renderDB(){
       ||(actFilter==='saved'?bookmarks.has(p.id)
       :actFilter==='popular'?(typeof POPULAR_IDS!=='undefined'&&POPULAR_IDS.includes(p.id))
       :p.cat===actFilter);
-    const qOk=!sq||p.n.toLowerCase().includes(sq)||p.fn.toLowerCase().includes(sq)||(p.alias||'').toLowerCase().includes(sq)||p.ov.toLowerCase().includes(sq)||(p.bens||[]).some(b=>b.toLowerCase().includes(sq));
+    const qOk=!sq||p.n.toLowerCase().includes(sq)||p.fn.toLowerCase().includes(sq)||(p.known||'').toLowerCase().includes(sq)||(p.alias||'').toLowerCase().includes(sq)||p.ov.toLowerCase().includes(sq)||(p.bens||[]).some(b=>b.toLowerCase().includes(sq));
     return catOk&&qOk;
   });
   if(actFilter==='popular'&&sort==='pop'&&typeof POPULAR_IDS!=='undefined'){
@@ -137,7 +137,8 @@ function pepCardHTML(p){
     return '<div class="pc pc-locked" onclick="openPaywall(\'compound\')">'
       +'<div class="pc-lock-badge">🔒 Pro</div>'
       +'<div class="pc-top"><span class="badge" style="background:'+c.bg+';border:1px solid '+c.b+';color:'+c.c+'">'+c.l+'</span></div>'
-      +'<div class="pc-name">'+p.n+'</div><div class="pc-fn">'+p.fn+'</div>'
+      +'<div class="pc-name">'+p.n+'</div>'
+      +'<div class="pc-fn">'+(p.known?'<span class="pc-known">'+p.known+'</span>':p.fn)+'</div>'
       +'<div class="pc-desc pc-blur">'+p.ov+'</div>'
       +'<div class="pc-meta">'
       +'<div class="pcm"><div class="pcm-l">Half-life</div><div class="pcm-v pc-blur">'+p.hl+'</div></div>'
@@ -150,7 +151,8 @@ function pepCardHTML(p){
     +'<div class="pc-top"><span class="badge" style="background:'+c.bg+';border:1px solid '+c.b+';color:'+c.c+'">'+c.l+'</span>'
     +(isPop?'<span class="pop-star" title="Commonly discussed">★</span>':'')
     +'<button class="bm'+(bm?' on':'')+ '" onclick="toggleBm(event,\''+p.id+'\')">'+(bm?'★':'☆')+'</button></div>'
-    +'<div class="pc-name">'+p.n+'</div><div class="pc-fn">'+p.fn+'</div>'
+    +'<div class="pc-name">'+p.n+'</div>'
+    +'<div class="pc-fn">'+(p.known?'<span class="pc-known">'+p.known+'</span>':p.fn)+'</div>'
     +'<div class="pc-desc">'+p.ov+'</div>'
     +'<div class="pc-meta">'
     +'<div class="pcm"><div class="pcm-l">Half-life</div><div class="pcm-v">'+p.hl+'</div></div>'
@@ -234,7 +236,9 @@ function openM(id){
   const c=CATS[p.cat]||{l:p.cat,c:'#fff',bg:'rgba(255,255,255,.08)',b:'rgba(255,255,255,.2)'};
   document.getElementById('mBadge').innerHTML='<span style="background:'+c.bg+';border:1px solid '+c.b+';color:'+c.c+';font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;padding:3px 9px;border-radius:50px;display:inline-block;margin-bottom:14px">'+c.l+'</span>';
   document.getElementById('mName').textContent=p.n;
-  document.getElementById('mSub').textContent=p.fn;
+  document.getElementById('mSub').innerHTML=p.known
+    ? '<span class="m-known">Also known as '+p.known+'</span><br>'+p.fn
+    : p.fn;
   document.getElementById('mOv').textContent=p.ov;
   document.getElementById('mMech').textContent=p.mech;
   document.getElementById('mBens').innerHTML=(p.bens||[]).map(b=>'<span class="tag tg">'+b+'</span>').join('');
