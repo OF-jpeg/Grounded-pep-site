@@ -178,6 +178,8 @@ var PAYWALL_COPY = {
 };
 
 function openPaywall(context) {
+  // Which limits people actually hit tells you where the value is
+  if (typeof trackEvent === 'function') trackEvent('paywall_hit', context || 'unknown');
   var copy = PAYWALL_COPY[context] || PAYWALL_COPY.protocol;
   var t = document.getElementById('paywallTitle');
   var s = document.getElementById('paywallSub');

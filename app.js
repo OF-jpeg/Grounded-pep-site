@@ -116,6 +116,7 @@ function renderDB(){
   const grid=document.getElementById('dbGrid');
   if(!grid) return;
   if(!list.length){
+    if(sq&&typeof trackEvent==='function') trackEvent('search_no_results',sq);
     const savedEmpty=actFilter==='saved'&&!bookmarks.size;
     grid.innerHTML=savedEmpty
       ? '<div class="db-empty"><div style="font-size:48px;margin-bottom:16px">☆</div>'
@@ -233,6 +234,7 @@ function openM(id){
   }
   curModal=id;
   pushRecent(id);
+  if(typeof trackEvent==='function') trackEvent('compound_view',p.n);
   const c=CATS[p.cat]||{l:p.cat,c:'#fff',bg:'rgba(255,255,255,.08)',b:'rgba(255,255,255,.2)'};
   document.getElementById('mBadge').innerHTML='<span style="background:'+c.bg+';border:1px solid '+c.b+';color:'+c.c+';font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;padding:3px 9px;border-radius:50px;display:inline-block;margin-bottom:14px">'+c.l+'</span>';
   document.getElementById('mName').textContent=p.n;
@@ -288,13 +290,18 @@ function renderStacks(){
   grid.innerHTML=STACKS_DATA.map((s,i)=>{
     const locked=(typeof canViewStack==='function')&&!canViewStack(i);
     if(locked){
+      // Show how many compounds are in the stack, but blur which ones.
+      // Seeing the shape of what's behind the paywall converts better than hiding it entirely.
+      const blurredPills=s.peps.map(p=>'<span class="sk-p sk-p-blur">'+p+'</span>').join('');
       return '<div class="sk sk-locked" onclick="openPaywall(\'stack\')">'
         +'<div class="pc-lock-badge">🔒 Pro</div>'
         +'<div class="sk-goal">'+s.goal+'</div>'
         +'<div class="sk-name">'+s.name+'</div>'
-        +'<div class="sk-peps">'+s.peps.map(p=>'<span class="sk-p">'+p+'</span>').join('')+'</div>'
+        +'<div class="sk-count">'+s.peps.length+' compounds</div>'
+        +'<div class="sk-peps">'+blurredPills+'</div>'
         +'<div class="sk-rat pc-blur">'+s.rationale+'</div>'
         +'<div class="sk-proto pc-blur"><div class="sk-pt">Protocol</div>'+s.proto.split('\n').join('<br>')+'</div>'
+        +'<div class="sk-unlock">Unlock with Pro →</div>'
         +'</div>';
     }
     return '<div class="sk">'

@@ -546,3 +546,9 @@ footer{border-top:1px solid var(--b1);padding:48px 64px 36px;max-width:1400px;ma
 /* ═══════════ KNOWN-AS / BRAND NAMES ═══════════ */
 .pc-known{color:#93C5FD;font-weight:500}
 .m-known{color:#93C5FD;font-weight:500;font-size:12.5px}
+
+/* ═══════════ LOCKED STACK STYLING ═══════════ */
+.sk-p-blur{filter:blur(5px);opacity:.6;user-select:none;pointer-events:none}
+.sk-count{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:#93C5FD;margin-bottom:10px}
+.sk-unlock{margin-top:16px;padding-top:14px;border-top:1px solid var(--b1);font-size:13px;font-weight:600;color:#93C5FD}
+.sk-locked:hover .sk-unlock{color:#BFDBFE}
