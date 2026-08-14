@@ -30,7 +30,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-<link rel="stylesheet" href="styles.css?v=1786711696">
+<link rel="stylesheet" href="styles.css?v=1786712227">
 </head>
 <body>
 <div class="agegate-ov" id="ageGateOverlay">
@@ -369,8 +369,8 @@
 <div class="page" id="page-research">
   <div class="res-page">
     <div class="sl">Research Hub</div>
-    <h2 class="sh" style="font-size:32px;margin-bottom:8px">Latest in peptide science</h2>
-    <p style="font-size:14px;color:var(--t2)">Curated research summaries with AI-powered plain-language explanations.</p>
+    <h2 class="sh" style="font-size:32px;margin-bottom:8px">Research Library</h2>
+    <p style="font-size:14px;color:var(--t2)">Original guides on sourcing, evidence, and practical handling — written for this platform.</p>
     <div class="res-grid" id="resGrid"></div>
   </div>
 </div>
@@ -605,6 +605,25 @@
   </div>
 </div>
 
+<div class="m-ov" id="artOverlay" onclick="if(event.target.id==='artOverlay')closeArticle()">
+  <div class="modal art-modal">
+    <button class="m-x" onclick="closeArticle()">✕</button>
+    <div class="art-head">
+      <div class="art-meta-row">
+        <span class="art-cat" id="artCat">Essential</span>
+        <span class="art-meta" id="artMeta">8 min read</span>
+      </div>
+      <h1 class="art-title" id="artTitle">Article title</h1>
+      <p class="art-sub" id="artSub">Subtitle</p>
+    </div>
+    <div class="art-body" id="artBody"></div>
+    <div class="art-foot">
+      Grounded provides educational information for research purposes only. This is not
+      medical advice. Always consult a licensed healthcare professional before using any compound.
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <div class="auth-ov" id="authOverlay" onclick="handleAuthMO(event)">
@@ -724,13 +743,14 @@
   </div>
 </div>
 
-<script src="legal.js?v=1786711696"></script>
+<script src="legal.js?v=1786712227"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js?v=1786711696"></script>
-<script src="analytics.js?v=1786711696"></script>
-<script src="billing.js?v=1786711696"></script>
-<script src="tracker.js?v=1786711696"></script>
-<script src="data.js?v=1786711696"></script>
-<script src="app.js?v=1786711696"></script>
+<script src="auth.js?v=1786712227"></script>
+<script src="analytics.js?v=1786712227"></script>
+<script src="billing.js?v=1786712227"></script>
+<script src="tracker.js?v=1786712227"></script>
+<script src="articles.js?v=1786712227"></script>
+<script src="data.js?v=1786712227"></script>
+<script src="app.js?v=1786712227"></script>
 </body>
 </html>

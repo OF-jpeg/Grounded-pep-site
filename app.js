@@ -322,29 +322,74 @@ function renderResearch(){
   const grid=document.getElementById('resGrid');
   if(!grid) return;
   const pro=(typeof isPro==='function')?isPro():false;
-  grid.innerHTML=RESEARCH_DATA.map((r,i)=>{
-    // Free plan gets the first article as a preview; the rest are locked
+  grid.innerHTML=ARTICLES.map((a,i)=>{
+    // First article is a free preview; the rest are Pro
     const locked=!pro&&i>0;
     if(locked){
       return '<div class="rc rc-locked" onclick="openPaywall(\'research\')">'
         +'<div class="pc-lock-badge">🔒 Pro</div>'
-        +'<div class="rc-m"><span class="rc-c" style="background:rgba(255,255,255,.05);border:1px solid var(--b1);color:'+r.catC+'">'+r.cat+'</span><span class="rc-d">'+r.date+'</span></div>'
-        +'<div class="rc-t">'+r.title+'</div>'
-        +'<div class="rc-a pc-blur">'+r.abstract+'</div>'
-        +'<div class="rc-f"><span class="rc-j">'+r.journal+'</span><span class="rc-link">Unlock →</span></div>'
+        +'<div class="rc-m"><span class="rc-c" style="background:rgba(255,255,255,.05);border:1px solid var(--b1);color:'+a.catC+'">'+a.cat+'</span><span class="rc-d">'+a.readTime+'</span></div>'
+        +'<div class="rc-t">'+a.title+'</div>'
+        +'<div class="rc-a pc-blur">'+a.subtitle+'</div>'
+        +'<div class="rc-f"><span class="rc-j">Updated '+a.updated+'</span><span class="rc-link">Unlock →</span></div>'
         +'</div>';
     }
-    return '<div class="rc">'
-      +'<div class="rc-m"><span class="rc-c" style="background:rgba(255,255,255,.05);border:1px solid var(--b1);color:'+r.catC+'">'+r.cat+'</span><span class="rc-d">'+r.date+'</span></div>'
-      +'<div class="rc-t">'+r.title+'</div>'
-      +'<div class="rc-a">'+r.abstract+'</div>'
-      +'<div class="rc-f"><span class="rc-j">'+r.journal+'</span><span class="rc-link" onclick="askResearch(\''+r.title.replace(/'/g,"\\'") +'\')">Ask AI →</span></div>'
+    return '<div class="rc" onclick="openArticle(\''+a.id+'\')">'
+      +'<div class="rc-m"><span class="rc-c" style="background:rgba(255,255,255,.05);border:1px solid var(--b1);color:'+a.catC+'">'+a.cat+'</span><span class="rc-d">'+a.readTime+'</span></div>'
+      +'<div class="rc-t">'+a.title+'</div>'
+      +'<div class="rc-a">'+a.subtitle+'</div>'
+      +'<div class="rc-f"><span class="rc-j">Updated '+a.updated+'</span><span class="rc-link">Read →</span></div>'
       +'</div>';
   }).join('');
 }
-function askResearch(title){
-  show('ai');
-  setTimeout(()=>{document.getElementById('aiInp').value='Explain this research in plain language: "'+title+'"';sendAI();},300);
+
+// ── Article reading view ──────────────────────────────────────────────
+// Renders the markdown subset used by articles.js into readable prose.
+function articleToHTML(md){
+  const e=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const inl=s=>s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>');
+  const lines=md.trim().split('\n');
+  let html='',inList=false;
+  const closeList=()=>{ if(inList){ html+='</ul>'; inList=false; } };
+  lines.forEach(raw=>{
+    const line=raw.trim();
+    if(!line){ closeList(); return; }
+    if(line.startsWith('### ')){ closeList(); html+='<h4>'+inl(e(line.slice(4)))+'</h4>'; return; }
+    if(line.startsWith('## ')){ closeList(); html+='<h3>'+inl(e(line.slice(3)))+'</h3>'; return; }
+    if(line.startsWith('- ')){
+      if(!inList){ html+='<ul>'; inList=true; }
+      html+='<li>'+inl(e(line.slice(2)))+'</li>'; return;
+    }
+    if(/^\d+\.\s/.test(line)){ closeList(); html+='<p class="art-step">'+inl(e(line))+'</p>'; return; }
+    closeList();
+    html+='<p>'+inl(e(line))+'</p>';
+  });
+  closeList();
+  return html;
+}
+
+function openArticle(id){
+  const a=ARTICLES.find(x=>x.id===id);
+  if(!a) return;
+  const idx=ARTICLES.indexOf(a);
+  const pro=(typeof isPro==='function')?isPro():false;
+  if(!pro&&idx>0){ openPaywall('research'); return; }
+  const cat=document.getElementById('artCat');
+  cat.textContent=a.cat;
+  cat.style.color=a.catC;
+  document.getElementById('artMeta').textContent=a.readTime+' · Updated '+a.updated;
+  document.getElementById('artTitle').textContent=a.title;
+  document.getElementById('artSub').textContent=a.subtitle;
+  document.getElementById('artBody').innerHTML=articleToHTML(a.body);
+  document.getElementById('artOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  const m=document.querySelector('#artOverlay .modal');
+  if(m) m.scrollTop=0;
+  if(typeof trackEvent==='function') trackEvent('article_read',a.title);
+}
+function closeArticle(){
+  document.getElementById('artOverlay').classList.remove('open');
+  document.body.style.overflow='';
 }
 
 // MARKDOWN RENDERER
