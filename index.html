@@ -30,7 +30,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-<link rel="stylesheet" href="styles.css?v=1786230080">
+<link rel="stylesheet" href="styles.css?v=1786711214">
 </head>
 <body>
 <div class="agegate-ov" id="ageGateOverlay">
@@ -215,6 +215,12 @@
     <div class="ai-main">
       <div class="ai-main-h">
         <span style="font-family:var(--fd);font-size:15px;font-weight:600;color:var(--t1)">AI Research Guide</span>
+        <div class="cx-wrap">
+          <span class="cx-label">Explain like:</span>
+          <button class="cx-btn" data-level="easy" onclick="setComplexity('easy')" title="Plain language, no jargon — like explaining to a 9th grader">Simple</button>
+          <button class="cx-btn" data-level="normal" onclick="setComplexity('normal')" title="Balanced — for an informed general reader">Standard</button>
+          <button class="cx-btn" data-level="hard" onclick="setComplexity('hard')" title="Full pharmacology detail — receptors, pathways, study design">Technical</button>
+        </div>
         <div class="ai-model">claude-sonnet-5</div>
         <div class="export-wrap">
           <button class="export-btn" onclick="toggleExportMenu()" title="Export conversation">
@@ -719,13 +725,13 @@
   </div>
 </div>
 
-<script src="legal.js?v=1786230080"></script>
+<script src="legal.js?v=1786711214"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js?v=1786230080"></script>
-<script src="analytics.js?v=1786230080"></script>
-<script src="billing.js?v=1786230080"></script>
-<script src="tracker.js?v=1786230080"></script>
-<script src="data.js?v=1786230080"></script>
-<script src="app.js?v=1786230080"></script>
+<script src="auth.js?v=1786711214"></script>
+<script src="analytics.js?v=1786711214"></script>
+<script src="billing.js?v=1786711214"></script>
+<script src="tracker.js?v=1786711214"></script>
+<script src="data.js?v=1786711214"></script>
+<script src="app.js?v=1786711214"></script>
 </body>
 </html>

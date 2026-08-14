@@ -61,7 +61,10 @@ function show(pg){
   if(pg==='tracker') renderTracker();
   if(pg==='proto') prefillProtoGoal();
   if(pg==='home') renderRecommendations();
-  if(pg==='ai'&&typeof updateAiQuotaUI==='function') updateAiQuotaUI();
+  if(pg==='ai'){
+    if(typeof updateAiQuotaUI==='function') updateAiQuotaUI();
+    renderComplexityUI();
+  }
 }
 window.addEventListener('scroll',()=>document.getElementById('mainNav').classList.toggle('scrolled',scrollY>30));
 
@@ -682,16 +685,81 @@ function renderCitations(p){
     +'</div>';
 }
 
+// ── Explanation complexity ────────────────────────────────────────────
+// A manual override the person controls directly, separate from the
+// experience level they set once at onboarding. Someone experienced can
+// still want a simple answer, and a beginner may want to push deeper.
+const COMPLEXITY_KEY='grounded_complexity';
+let complexityLevel=null; // null = follow their onboarding experience level
+
+const COMPLEXITY_GUIDANCE={
+  easy:`EXPLANATION LEVEL: SIMPLE — write so a 9th grader could follow it.
+- Assume no science background whatsoever
+- Define every technical term the first time, in parentheses, e.g. "subcutaneous (just under the skin)"
+- Lead with a plain-language analogy before any mechanism detail
+- Use short sentences and short paragraphs
+- Avoid receptor names, pathway names, and pharmacokinetic jargon unless the person asks
+- Prefer "your body's own repair signal" over "endogenous growth factor upregulation"
+- Keep answers brief — one clear idea at a time
+- Never talk down to them; simple is not the same as condescending`,
+  normal:`EXPLANATION LEVEL: STANDARD — write for an informed general reader.
+- Assume familiarity with common terms (subQ, half-life, reconstitution, mcg vs mg)
+- Explain less common mechanisms and receptor names when you introduce them
+- Balance mechanism with practical takeaway
+- Use analogies for genuinely complex processes, but don't over-simplify`,
+  hard:`EXPLANATION LEVEL: TECHNICAL — write for someone with real background knowledge.
+- Skip basic definitions entirely; assume fluency in pharmacology terminology
+- Name specific receptors, signalling pathways, and binding affinities where relevant
+- Discuss pharmacokinetics precisely: half-life, bioavailability, clearance, tissue distribution
+- Reference study design and evidence quality — sample size, model organism, whether results replicated
+- Distinguish clearly between in-vitro, animal, and human data
+- Engage with mechanistic nuance and open questions rather than smoothing them over
+- Do not pad with caveats they already understand`
+};
+
+const COMPLEXITY_LABELS={easy:'Simple',normal:'Standard',hard:'Technical'};
+
+function loadComplexity(){
+  try{
+    const saved=localStorage.getItem(COMPLEXITY_KEY);
+    if(saved&&COMPLEXITY_GUIDANCE[saved]) complexityLevel=saved;
+  }catch(e){}
+}
+
+function setComplexity(level){
+  complexityLevel=(complexityLevel===level)?null:level; // clicking again clears the override
+  try{
+    if(complexityLevel) localStorage.setItem(COMPLEXITY_KEY,complexityLevel);
+    else localStorage.removeItem(COMPLEXITY_KEY);
+  }catch(e){}
+  renderComplexityUI();
+  if(typeof trackEvent==='function') trackEvent('complexity_set',complexityLevel||'auto');
+  toast(complexityLevel
+    ? 'Explanations set to '+COMPLEXITY_LABELS[complexityLevel]
+    : 'Following your profile setting');
+}
+
+function renderComplexityUI(){
+  document.querySelectorAll('.cx-btn').forEach(b=>{
+    b.classList.toggle('on',b.dataset.level===complexityLevel);
+  });
+}
+
 // Builds the system prompt, layering in personalization when available
 function getSYS(){
   let prompt=SYS;
   const meta=(typeof currentUser!=='undefined'&&currentUser)?(currentUser.user_metadata||{}):{};
   const exp=meta.experience_level;
   const goal=meta.research_goal;
-  if(!exp&&!goal) return prompt;
+  if(!exp&&!goal&&!complexityLevel) return prompt;
 
   prompt+='\n\n--- PERSONALIZATION FOR THIS USER ---';
-  if(exp&&EXP_GUIDANCE[exp]) prompt+='\n\n'+EXP_GUIDANCE[exp];
+  // An explicit complexity choice overrides the onboarding experience level
+  if(complexityLevel&&COMPLEXITY_GUIDANCE[complexityLevel]){
+    prompt+='\n\n'+COMPLEXITY_GUIDANCE[complexityLevel];
+  } else if(exp&&EXP_GUIDANCE[exp]){
+    prompt+='\n\n'+EXP_GUIDANCE[exp];
+  }
   if(goal&&GOAL_LABELS[goal]){
     prompt+=`\n\nTheir stated primary research goal is: ${GOAL_LABELS[goal]}. When a question is open-ended or they ask for recommendations, weight your answer toward this goal — but never ignore or deflect questions about other areas.`;
   }
@@ -1039,5 +1107,7 @@ document.addEventListener('keydown',e=>{
 });
 
 // INIT
+loadComplexity();
+renderComplexityUI();
 renderDB();
 initAI();
