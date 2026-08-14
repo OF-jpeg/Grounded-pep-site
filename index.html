@@ -30,7 +30,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-<link rel="stylesheet" href="styles.css?v=1786712227">
+<link rel="stylesheet" href="styles.css?v=1786712787">
 </head>
 <body>
 <div class="agegate-ov" id="ageGateOverlay">
@@ -369,9 +369,28 @@
 <div class="page" id="page-research">
   <div class="res-page">
     <div class="sl">Research Hub</div>
-    <h2 class="sh" style="font-size:32px;margin-bottom:8px">Research Library</h2>
-    <p style="font-size:14px;color:var(--t2)">Original guides on sourcing, evidence, and practical handling — written for this platform.</p>
-    <div class="res-grid" id="resGrid"></div>
+    <h2 class="sh" style="font-size:32px;margin-bottom:8px">Research Hub</h2>
+    <p style="font-size:14px;color:var(--t2)">Original guides plus a live feed of new papers from PubMed.</p>
+
+    <div class="res-tabs">
+      <button class="res-tab on" onclick="showResTab('guides',this)">Guides</button>
+      <button class="res-tab" onclick="showResTab('feed',this)">Latest Research</button>
+    </div>
+
+    <div class="res-panel on" id="res-guides">
+      <div class="res-grid" id="resGrid"></div>
+    </div>
+
+    <div class="res-panel" id="res-feed">
+      <div class="feed-head">
+        <p style="font-size:13px;color:var(--t3);line-height:1.6">
+          Pulled automatically from PubMed. Titles, journals, and PMIDs come directly from
+          NCBI — nothing here is written by us except the plain-language summaries, which
+          are generated from each paper's real abstract.
+        </p>
+      </div>
+      <div id="feedList"></div>
+    </div>
   </div>
 </div>
 
@@ -743,14 +762,14 @@
   </div>
 </div>
 
-<script src="legal.js?v=1786712227"></script>
+<script src="legal.js?v=1786712787"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js?v=1786712227"></script>
-<script src="analytics.js?v=1786712227"></script>
-<script src="billing.js?v=1786712227"></script>
-<script src="tracker.js?v=1786712227"></script>
-<script src="articles.js?v=1786712227"></script>
-<script src="data.js?v=1786712227"></script>
-<script src="app.js?v=1786712227"></script>
+<script src="auth.js?v=1786712787"></script>
+<script src="analytics.js?v=1786712787"></script>
+<script src="billing.js?v=1786712787"></script>
+<script src="tracker.js?v=1786712787"></script>
+<script src="articles.js?v=1786712787"></script>
+<script src="data.js?v=1786712787"></script>
+<script src="app.js?v=1786712787"></script>
 </body>
 </html>

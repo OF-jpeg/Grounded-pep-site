@@ -343,6 +343,99 @@ function renderResearch(){
   }).join('');
 }
 
+// ── Live PubMed feed ──────────────────────────────────────────────────
+// Reads the research_feed table populated by the research-feed Edge
+// Function. Every field originates from NCBI, not from us.
+let feedLoaded=false;
+
+function showResTab(tab,btn){
+  document.querySelectorAll('.res-panel').forEach(e=>e.classList.remove('on'));
+  document.querySelectorAll('.res-tab').forEach(e=>e.classList.remove('on'));
+  document.getElementById('res-'+tab).classList.add('on');
+  if(btn) btn.classList.add('on');
+  if(tab==='feed'&&!feedLoaded) loadResearchFeed();
+}
+
+function timeAgo(iso){
+  const d=new Date(iso);
+  if(isNaN(d)) return '';
+  const days=Math.floor((Date.now()-d.getTime())/86400000);
+  if(days<1) return 'today';
+  if(days===1) return 'yesterday';
+  if(days<30) return days+' days ago';
+  const months=Math.floor(days/30);
+  return months===1?'1 month ago':months+' months ago';
+}
+
+async function loadResearchFeed(){
+  const wrap=document.getElementById('feedList');
+  if(!wrap) return;
+  wrap.innerHTML='<div class="feed-loading">Loading latest research…</div>';
+
+  if(typeof sb==='undefined'){
+    wrap.innerHTML='<div class="feed-empty">Feed unavailable — not connected.</div>';
+    return;
+  }
+
+  try{
+    const {data,error}=await sb
+      .from('research_feed')
+      .select('pmid,title,journal,pub_date,authors,pub_type,plain_summary,abstract,created_at')
+      .order('created_at',{ascending:false})
+      .limit(40);
+
+    if(error) throw error;
+    feedLoaded=true;
+
+    if(!data||!data.length){
+      wrap.innerHTML='<div class="feed-empty">'
+        +'<strong>No papers yet.</strong><br>'
+        +'The feed populates once the research-feed function has run. '
+        +'See <code>supabase/functions/research-feed/DEPLOY.md</code> for setup.'
+        +'</div>';
+      return;
+    }
+
+    const pro=(typeof isPro==='function')?isPro():false;
+    wrap.innerHTML=data.map((p,i)=>{
+      // Free users see the three most recent; the rest need Pro
+      const locked=!pro&&i>=3;
+      const summary=p.plain_summary||p.abstract||'';
+      const short=summary.length>300?summary.slice(0,300)+'…':summary;
+      const isAI=!!p.plain_summary;
+
+      if(locked){
+        return '<div class="feed-item feed-locked" onclick="openPaywall(\'research\')">'
+          +'<div class="pc-lock-badge">🔒 Pro</div>'
+          +'<div class="feed-meta"><span class="feed-journal">'+esc(p.journal||'')+'</span>'
+          +'<span class="feed-date">'+esc(p.pub_date||'')+'</span></div>'
+          +'<div class="feed-title">'+esc(p.title)+'</div>'
+          +'<div class="feed-sum pc-blur">'+esc(short)+'</div>'
+          +'</div>';
+      }
+
+      return '<div class="feed-item">'
+        +'<div class="feed-meta"><span class="feed-journal">'+esc(p.journal||'')+'</span>'
+        +'<span class="feed-date">'+esc(p.pub_date||'')+'</span>'
+        +'<span class="feed-added">added '+timeAgo(p.created_at)+'</span></div>'
+        +'<div class="feed-title">'+esc(p.title)+'</div>'
+        +(p.authors?'<div class="feed-authors">'+esc(p.authors)+'</div>':'')
+        +(short?'<div class="feed-sum">'+esc(short)+(isAI?'<span class="feed-ai-tag">plain-language summary</span>':'')+'</div>':'')
+        +'<div class="feed-foot">'
+        +'<a class="feed-link" href="https://pubmed.ncbi.nlm.nih.gov/'+encodeURIComponent(p.pmid)+'/" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Read on PubMed ↗</a>'
+        +'<span class="feed-pmid">PMID '+esc(p.pmid)+'</span>'
+        +'</div></div>';
+    }).join('');
+
+  }catch(e){
+    wrap.innerHTML='<div class="feed-empty">'
+      +'<strong>Feed not set up yet.</strong><br>'
+      +'The <code>research_feed</code> table doesn\'t exist. '
+      +'See <code>supabase/functions/research-feed/DEPLOY.md</code>.'
+      +'</div>';
+  }
+}
+
 // ── Article reading view ──────────────────────────────────────────────
 // Renders the markdown subset used by articles.js into readable prose.
 function articleToHTML(md){

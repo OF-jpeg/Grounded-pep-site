@@ -592,3 +592,29 @@ footer{border-top:1px solid var(--b1);padding:48px 64px 36px;max-width:1400px;ma
   .art-title{font-size:27px}
   .art-foot{margin:20px 26px 36px}
 }
+
+/* ═══════════ RESEARCH HUB TABS + FEED ═══════════ */
+.res-tabs{display:flex;gap:8px;margin:24px 0 20px}
+.res-tab{padding:9px 20px;border-radius:50px;font-size:13.5px;font-weight:600;color:var(--t2);background:var(--g1);border:1px solid var(--b1);cursor:pointer;font-family:var(--fb);transition:all .15s}
+.res-tab:hover{color:var(--t1);border-color:var(--b2)}
+.res-tab.on{background:#FFFFFF;color:#06101F;border-color:#FFFFFF}
+.res-panel{display:none}
+.res-panel.on{display:block}
+.feed-head{margin-bottom:18px;padding:14px 16px;background:var(--g1);border:1px solid var(--b1);border-radius:var(--r)}
+.feed-loading,.feed-empty{padding:48px 24px;text-align:center;color:var(--t3);font-size:14px;line-height:1.7}
+.feed-empty code{background:var(--g2);border:1px solid var(--b1);border-radius:5px;padding:2px 6px;font-family:var(--fm);font-size:12px;color:var(--t2)}
+.feed-item{position:relative;background:var(--g1);border:1px solid var(--b1);border-radius:var(--rx);padding:22px 24px;margin-bottom:12px;transition:border-color .18s}
+.feed-item:hover{border-color:var(--b2)}
+.feed-locked{cursor:pointer}
+.feed-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.feed-journal{font-size:11.5px;font-weight:600;color:#93C5FD;letter-spacing:.2px}
+.feed-date{font-size:11.5px;color:var(--t3)}
+.feed-added{font-size:11px;color:var(--t3);padding:2px 8px;border-radius:50px;background:var(--g2);border:1px solid var(--b1)}
+.feed-title{font-family:var(--fd);font-size:16.5px;font-weight:700;color:var(--t1);line-height:1.4;letter-spacing:-.2px;margin-bottom:8px}
+.feed-authors{font-size:12px;color:var(--t3);margin-bottom:10px;font-style:italic}
+.feed-sum{font-size:13.5px;color:var(--t2);line-height:1.7;margin-bottom:14px}
+.feed-ai-tag{display:inline-block;margin-left:8px;font-size:10px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--t3);padding:2px 7px;border-radius:50px;background:var(--g2);border:1px solid var(--b1);vertical-align:middle}
+.feed-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:14px;border-top:1px solid var(--b1);flex-wrap:wrap}
+.feed-link{font-size:12.5px;font-weight:600;color:#93C5FD;text-decoration:none}
+.feed-link:hover{color:#BFDBFE;text-decoration:underline}
+.feed-pmid{font-size:11px;color:var(--t3);font-family:var(--fm)}
