@@ -50,7 +50,7 @@ function show(pg){
   document.querySelectorAll('.nl').forEach(e=>e.classList.remove('on'));
   const el=document.getElementById('page-'+pg);
   if(el) el.classList.add('on');
-  const keys=['home','db','ai','proto','stacks','tracker','research','pricing'];
+  const keys=['home','db','ai','proto','stacks','tracker','research','community','pricing'];
   const idx=keys.indexOf(pg);
   const nls=document.querySelectorAll('.nl');
   if(idx>=0&&nls[idx]) nls[idx].classList.add('on');
@@ -58,6 +58,7 @@ function show(pg){
   if(pg==='db'){renderDB();renderRecent();}
   if(pg==='stacks') renderStacks();
   if(pg==='research'){ renderResearch(); if(!feedLoaded) loadResearchFeed(); }
+  if(pg==='community'&&typeof renderCommFaq==='function'){ renderCommFaq(); renderRoadmap(); }
   if(pg==='tracker') renderTracker();
   if(pg==='home') renderRecommendations();
   if(pg==='ai'){
@@ -908,7 +909,7 @@ function mobileGo(pg){
 }
 function syncMobileNavActive(){
   // Matches on data-page rather than index, so adding non-page links
-  // (like the Discord invite) can't break the highlighting
+  // (like external links) can't break the highlighting
   document.querySelectorAll('.mnav-link[data-page]').forEach(l=>{
     l.classList.toggle('on',l.dataset.page===currentPage);
   });

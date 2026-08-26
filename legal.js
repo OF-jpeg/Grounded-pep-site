@@ -89,20 +89,18 @@ const LEGAL_DOCS = {
     title: 'Contact',
     html: `
       <h3>Get in touch</h3>
-      <p>The fastest way to reach us — and the best place for questions, feedback, or bug reports — is our Discord community.</p>
-      <p><a href="https://discord.gg/2XcHagbE39" target="_blank" rel="noopener noreferrer">Join the Grounded Discord →</a></p>
-      <h3>What to reach out about</h3>
+      <p>The fastest way to reach us is the suggestion box on the <a onclick="closeLegal();show('community')">Community page</a>. It goes straight to us and is genuinely read.</p>
+      <h3>What's most useful to send</h3>
       <ul>
         <li><strong>Found an error?</strong> If something in a compound profile looks wrong, tell us. Accuracy matters more than being fast.</li>
         <li><strong>Missing a compound?</strong> Suggest it and we'll look into adding it.</li>
-        <li><strong>Bug or broken feature?</strong> Let us know what you were doing when it broke.</li>
-        <li><strong>Account or billing questions.</strong></li>
+        <li><strong>Bug or broken feature?</strong> Tell us what you clicked and what happened.</li>
+        <li><strong>Confusing explanation?</strong> Tell us where you got lost — that's a content problem worth fixing.</li>
       </ul>
       <h3>What we can't help with</h3>
       <p>We can't give medical advice, recommend vendors or sources, or advise on the legality of any compound in your jurisdiction. Those questions need a licensed professional who knows your situation.</p>
     `
   },
-
   privacy: {
     title: 'Privacy Policy',
     html: `

@@ -30,7 +30,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-<link rel="stylesheet" href="styles.css?v=1787712705">
+<link rel="stylesheet" href="styles.css?v=1787731356">
 </head>
 <body>
 <div class="agegate-ov" id="ageGateOverlay">
@@ -73,6 +73,7 @@
     <button class="nl" onclick="show('stacks')">Stacks</button>
     <button class="nl" onclick="show('tracker')">Tracker</button>
     <button class="nl" onclick="show('research')">Research</button>
+    <button class="nl" onclick="show('community')">Community</button>
     <button class="nl" onclick="show('pricing')">Pricing</button>
   </div>
   <div class="nav-r">
@@ -123,11 +124,9 @@
     <button class="mnav-link" data-page="stacks" onclick="mobileGo('stacks')">Stacking Guide</button>
     <button class="mnav-link" data-page="tracker" onclick="mobileGo('tracker')">Dose Tracker</button>
     <button class="mnav-link" data-page="research" onclick="mobileGo('research')">Research Hub</button>
+    <button class="mnav-link" data-page="community" onclick="mobileGo('community')">Community</button>
     <button class="mnav-link" data-page="pricing" onclick="mobileGo('pricing')">Pricing</button>
-    <a class="mnav-link mnav-discord" href="https://discord.gg/2XcHagbE39" target="_blank" rel="noopener noreferrer">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.099.246.197.373.291a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.893.077.077 0 0 0-.041.106c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
-      Join our Discord
-    </a>
+
   </div>
   <div class="mnav-footer" id="mnavAuth"></div>
 </div>
@@ -472,6 +471,84 @@
   </div>
 </div>
 
+<div class="page" id="page-community">
+  <div class="comm-page">
+    <div class="sl">Community</div>
+    <h2 class="sh" style="font-size:32px;margin-bottom:8px">Help shape Grounded</h2>
+    <p style="font-size:14px;color:var(--t2);max-width:620px;margin-bottom:28px">
+      This is early. What gets built next depends on what people actually ask for —
+      so tell us what's missing, what's wrong, or what you'd pay for.
+    </p>
+
+    <div class="comm-tabs">
+      <button class="comm-tab on" onclick="showCommTab('suggest',this)">Suggest something</button>
+      <button class="comm-tab" onclick="showCommTab('faq',this)">FAQ</button>
+      <button class="comm-tab" onclick="showCommTab('roadmap',this)">What's coming</button>
+    </div>
+
+    <div class="comm-panel on" id="comm-suggest">
+      <div class="comm-grid">
+        <div class="comm-form-card">
+          <div class="comm-type-row" id="commTypeRow">
+            <button class="comm-type on" data-type="feature" onclick="setSuggestType('feature')">💡 Feature idea</button>
+            <button class="comm-type" data-type="compound" onclick="setSuggestType('compound')">🧪 Missing compound</button>
+            <button class="comm-type" data-type="bug" onclick="setSuggestType('bug')">🐛 Something broken</button>
+            <button class="comm-type" data-type="correction" onclick="setSuggestType('correction')">📝 Factual correction</button>
+          </div>
+
+          <label class="clb comm-lbl" id="suggestPromptLbl">What would you like to see?</label>
+          <textarea class="comm-textarea" id="suggestBody" rows="5"
+                    placeholder="Be specific — the more detail, the more likely it gets built."
+                    oninput="updateSuggestCount()"></textarea>
+          <div class="comm-count"><span id="suggestCount">0</span> / 1000</div>
+
+          <label class="clb comm-lbl">Email <span class="auth-optional">(optional — only if you want a reply)</span></label>
+          <input class="pc2" type="email" id="suggestEmail" placeholder="you@example.com">
+
+          <button class="btn-hero bh1" style="width:100%;justify-content:center;margin-top:18px"
+                  id="suggestSubmit" onclick="submitSuggestion()">Send it</button>
+          <div class="comm-note">
+            Corrections are taken seriously — if something in a compound profile is wrong,
+            we'd rather know than be confidently incorrect.
+          </div>
+        </div>
+
+        <div class="comm-side">
+          <div class="comm-side-card">
+            <div class="comm-side-title">What's most useful to send</div>
+            <ul class="comm-list">
+              <li><strong>Missing compounds</strong> — anything you expected to find and didn't</li>
+              <li><strong>Factual errors</strong> — wrong half-life, dosing, mechanism, status</li>
+              <li><strong>Confusing explanations</strong> — tell us where you got lost</li>
+              <li><strong>Broken things</strong> — what you clicked and what happened</li>
+            </ul>
+          </div>
+          <div class="comm-side-card">
+            <div class="comm-side-title">What we can't help with</div>
+            <p class="comm-side-text">
+              We can't give medical advice, recommend vendors or sources, or tell you
+              whether something is legal where you live. Those need a licensed
+              professional who knows your situation.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="comm-panel" id="comm-faq">
+      <div class="comm-faq-list" id="commFaqList"></div>
+    </div>
+
+    <div class="comm-panel" id="comm-roadmap">
+      <p style="font-size:13.5px;color:var(--t2);margin-bottom:20px;max-width:620px">
+        Being upfront about what exists, what's being worked on, and what's just an idea.
+      </p>
+      <div class="roadmap-cols" id="roadmapCols"></div>
+    </div>
+
+  </div>
+</div>
+
 <div class="page" id="page-pricing">
   <div class="price-page">
     <div class="sl" style="text-align:center">Pricing</div>
@@ -532,9 +609,9 @@
 
   <footer>
     <div class="fg2">
-      <div><div style="display:flex;align-items:center;gap:8px"><div class="logo-g" aria-hidden="true"></div><span class="fl-t">Grounded</span></div><p class="fl-d">The AI-powered peptide research platform for informed, science-curious people.</p><a class="social-btn" href="https://discord.gg/2XcHagbE39" target="_blank" rel="noopener noreferrer" aria-label="Join the Grounded Discord"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.79.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.32.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .31.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.099.246.197.373.291a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.893.077.077 0 0 0-.41.106c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .84.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.331c-1.182 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>Join our Discord</a></div>
+      <div><div style="display:flex;align-items:center;gap:8px"><div class="logo-g" aria-hidden="true"></div><span class="fl-t">Grounded</span></div><p class="fl-d">The AI-powered peptide research platform for informed, science-curious people.</p></div>
       <div><div class="fc-t">Platform</div><a class="fl" onclick="show('db')">Database</a><a class="fl" onclick="show('ai')">AI Guide</a><a class="fl" onclick="show('proto')">Stack Finder</a><a class="fl" onclick="show('research')">Research Hub</a></div>
-      <div><div class="fc-t">Community</div><a class="fl" href="https://discord.gg/2XcHagbE39" target="_blank" rel="noopener noreferrer">Discord</a><a class="fl" onclick="openLegal('about')">About</a><a class="fl" onclick="openLegal('faq')">FAQ</a><a class="fl" onclick="openLegal('contact')">Contact</a></div>
+      <div><div class="fc-t">Community</div><a class="fl" onclick="show('community')">Suggestions</a><a class="fl" onclick="show('community')">FAQ</a><a class="fl" onclick="openLegal('about')">About</a><a class="fl" onclick="openLegal('contact')">Contact</a></div>
       <div><div class="fc-t">Legal</div><a class="fl" onclick="openLegal('privacy')">Privacy</a><a class="fl" onclick="openLegal('terms')">Terms</a><a class="fl" onclick="openLegal('disclaimer')">Disclaimer</a></div>
     </div>
     <div class="fb"><span>© 2025 Grounded. All rights reserved.</span><span>Made for researchers</span></div>
@@ -842,16 +919,17 @@
   </div>
 </div>
 
-<script src="legal.js?v=1787712705"></script>
+<script src="legal.js?v=1787731356"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js?v=1787712705"></script>
-<script src="analytics.js?v=1787712705"></script>
-<script src="billing.js?v=1787712705"></script>
-<script src="tracker.js?v=1787712705"></script>
-<script src="articles.js?v=1787712705"></script>
-<script src="data.js?v=1787712705"></script>
-<script src="app.js?v=1787712705"></script>
-<script src="notifications.js?v=1787712705"></script>
-<script src="quiz.js?v=1787712705"></script>
+<script src="auth.js?v=1787731356"></script>
+<script src="analytics.js?v=1787731356"></script>
+<script src="billing.js?v=1787731356"></script>
+<script src="tracker.js?v=1787731356"></script>
+<script src="articles.js?v=1787731356"></script>
+<script src="data.js?v=1787731356"></script>
+<script src="app.js?v=1787731356"></script>
+<script src="community.js?v=1787731356"></script>
+<script src="notifications.js?v=1787731356"></script>
+<script src="quiz.js?v=1787731356"></script>
 </body>
 </html>
