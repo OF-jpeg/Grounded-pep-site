@@ -414,6 +414,8 @@ let feedLoaded=false;
 let feedCache=[];
 let feedFilterMine=false;
 let feedSourceFilter='all';
+let feedCompoundFilter='';
+let feedSearchQuery='';
 
 // Compounds this person actually cares about — what they track, plus bookmarks
 function getMyCompounds(){
@@ -447,6 +449,105 @@ function showResTab(tab,btn){
   document.getElementById('res-'+tab).classList.add('on');
   if(btn) btn.classList.add('on');
   if(tab==='feed'&&!feedLoaded) loadResearchFeed();
+}
+
+// Builds the compound dropdown from what's actually in the feed, with counts,
+// so people aren't offered filters that return nothing.
+function populateFeedCompounds(){
+  const sel=document.getElementById('feedCompoundSelect');
+  if(!sel) return;
+  const counts={};
+  feedCache.forEach(p=>{
+    detectCompounds(p).forEach(c=>{ counts[c.id]=(counts[c.id]||0)+1; });
+  });
+  const entries=Object.entries(counts)
+    .map(([id,n])=>({p:PEPS.find(x=>x.id===id),n}))
+    .filter(e=>e.p)
+    .sort((a,b)=>b.n-a.n||a.p.n.localeCompare(b.p.n));
+  const prev=sel.value;
+  sel.innerHTML='<option value="">All compounds ('+feedCache.length+')</option>'
+    +entries.map(e=>'<option value="'+e.p.id+'">'+e.p.n+' ('+e.n+')</option>').join('');
+  if(prev) sel.value=prev;
+}
+
+function filterFeedByCompound(id){
+  const sel=document.getElementById('feedCompoundSelect');
+  if(sel) sel.value=id;
+  setFeedCompound(id);
+  const el=document.getElementById('feedSrcFilters');
+  if(el) el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function setFeedCompound(id){
+  feedCompoundFilter=id;
+  renderFeedList();
+  renderActiveFilters();
+  if(typeof trackEvent==='function'&&id){
+    const p=PEPS.find(x=>x.id===id);
+    if(p) trackEvent('feed_compound_filter',p.n);
+  }
+}
+
+let feedSearchTimer=null;
+function onFeedSearch(){
+  const inp=document.getElementById('feedSearch');
+  const clear=document.getElementById('feedSearchClear');
+  if(!inp) return;
+  if(clear) clear.style.display=inp.value?'':'none';
+  clearTimeout(feedSearchTimer);
+  feedSearchTimer=setTimeout(()=>{
+    feedSearchQuery=inp.value.trim().toLowerCase();
+    renderFeedList();
+    renderActiveFilters();
+    if(feedSearchQuery.length>2&&typeof trackEvent==='function'){
+      trackEvent('feed_search',feedSearchQuery);
+    }
+  },200);
+}
+
+function clearFeedSearch(){
+  const inp=document.getElementById('feedSearch');
+  if(inp) inp.value='';
+  feedSearchQuery='';
+  const clear=document.getElementById('feedSearchClear');
+  if(clear) clear.style.display='none';
+  renderFeedList();
+  renderActiveFilters();
+}
+
+function clearAllFeedFilters(){
+  feedCompoundFilter='';
+  feedSearchQuery='';
+  feedFilterMine=false;
+  feedSourceFilter='all';
+  const sel=document.getElementById('feedCompoundSelect'); if(sel) sel.value='';
+  const inp=document.getElementById('feedSearch'); if(inp) inp.value='';
+  const clr=document.getElementById('feedSearchClear'); if(clr) clr.style.display='none';
+  document.querySelectorAll('.feed-filter-btn').forEach(b=>b.classList.toggle('on',b.dataset.mode==='all'));
+  document.querySelectorAll('.feed-src-btn').forEach(b=>b.classList.toggle('on',b.dataset.src==='all'));
+  renderFeedList();
+  renderActiveFilters();
+}
+
+// Shows what's currently narrowing the list, each removable
+function renderActiveFilters(){
+  const el=document.getElementById('feedActiveFilters');
+  if(!el) return;
+  const chips=[];
+  if(feedCompoundFilter){
+    const p=PEPS.find(x=>x.id===feedCompoundFilter);
+    if(p) chips.push('<button class="faf-chip" onclick="document.getElementById(\'feedCompoundSelect\').value=\'\';setFeedCompound(\'\')">'+esc(p.n)+' ✕</button>');
+  }
+  if(feedSearchQuery) chips.push('<button class="faf-chip" onclick="clearFeedSearch()">“'+esc(feedSearchQuery)+'” ✕</button>');
+  if(feedFilterMine) chips.push('<button class="faf-chip" onclick="toggleFeedFilter(false)">My compounds ✕</button>');
+  if(feedSourceFilter!=='all'){
+    const s=FEED_SOURCES[feedSourceFilter];
+    chips.push('<button class="faf-chip" onclick="setFeedSource(\'all\')">'+(s?s.label:feedSourceFilter)+' ✕</button>');
+  }
+  if(!chips.length){ el.style.display='none'; return; }
+  el.style.display='flex';
+  el.innerHTML='<span class="faf-label">Filtered by</span>'+chips.join('')
+    +'<button class="faf-clear" onclick="clearAllFeedFilters()">Clear all</button>';
 }
 
 function setFeedSource(src){
@@ -489,6 +590,17 @@ function renderFeedList(){
       ? (p.source==='pubmed'||p.source==='europepmc'||!p.source)
       : p.source===feedSourceFilter);
   }
+  if(feedCompoundFilter){
+    list=list.filter(p=>detectCompounds(p).some(c=>c.id===feedCompoundFilter));
+  }
+  if(feedSearchQuery){
+    const q=feedSearchQuery;
+    list=list.filter(p=>{
+      const hay=((p.title||'')+' '+(p.journal||'')+' '+(p.compounds||'')+' '
+        +(p.plain_summary||'')+' '+(p.abstract||'')+' '+(p.authors||'')).toLowerCase();
+      return hay.includes(q);
+    });
+  }
 
   if(feedFilterMine&&!mine.length){
     wrap.innerHTML='<div class="feed-empty">'
@@ -500,13 +612,20 @@ function renderFeedList(){
     return;
   }
   if(!list.length){
+    const filtering=feedCompoundFilter||feedSearchQuery||feedSourceFilter!=='all';
     wrap.innerHTML='<div class="feed-empty">'
-      +(feedFilterMine
-        ? '<strong>No new papers on your compounds yet.</strong><br>We check PubMed daily — this fills in as research is published.'
-        : '<strong>No papers yet.</strong><br>The feed populates once the research-feed function has run.')
+      +(filtering
+        ? '<strong>No results for those filters.</strong><br>Try widening your search.'
+          +'<div style="margin-top:16px"><button class="btn-hero bh2" onclick="clearAllFeedFilters()">Clear filters</button></div>'
+        : feedFilterMine
+          ? '<strong>No new papers on your compounds yet.</strong><br>We check for new research daily — this fills in as it is published.'
+          : '<strong>No papers yet.</strong><br>The feed populates once the research-feed function has run.')
       +'</div>';
     return;
   }
+
+  const countEl=document.getElementById('feedResultCount');
+  if(countEl) countEl.textContent=list.length+(list.length===1?' result':' results');
 
   wrap.innerHTML=list.map(p=>{
     const summary=p.plain_summary||p.abstract||'';
@@ -518,9 +637,12 @@ function renderFeedList(){
       ? '<div class="feed-compounds">'+detected.map(c=>{
           const cc=CATS[c.cat]||{c:'#93C5FD'};
           const isMine=mine.some(m=>m.replace(/[\s\-–_]/g,'').toLowerCase()===c.n.replace(/[\s\-–_]/g,'').toLowerCase());
-          return '<button class="feed-chip'+(isMine?' feed-chip-mine':'')+'" style="color:'+cc.c+'" '
-            +'onclick="event.stopPropagation();openM(\''+c.id+'\')" '
-            +'title="Open '+esc(c.n)+' profile">'+esc(c.n)+'</button>';
+          return '<span class="feed-chip-group">'
+            +'<button class="feed-chip'+(isMine?' feed-chip-mine':'')+'" style="color:'+cc.c+'" '
+            +'onclick="event.stopPropagation();filterFeedByCompound(\''+c.id+'\')" '
+            +'title="Show only '+esc(c.n)+' research">'+esc(c.n)+'</button>'
+            +'<button class="feed-chip-open" onclick="event.stopPropagation();openM(\''+c.id+'\')" '
+            +'title="Open '+esc(c.n)+' profile">↗</button></span>';
         }).join('')+'</div>'
       : '';
 
@@ -577,7 +699,9 @@ async function loadResearchFeed(){
     feedLoaded=true;
     feedCache=data||[];
     updateFeedCounts();
+    populateFeedCompounds();
     renderFeedList();
+    renderActiveFilters();
   }catch(e){
     wrap.innerHTML='<div class="feed-empty">'
       +'<strong>Feed not set up yet.</strong><br>'

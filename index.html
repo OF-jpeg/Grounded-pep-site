@@ -30,7 +30,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-<link rel="stylesheet" href="styles.css?v=1787710833">
+<link rel="stylesheet" href="styles.css?v=1787711930">
 </head>
 <body>
 <div class="agegate-ov" id="ageGateOverlay">
@@ -386,6 +386,19 @@
         <button class="feed-filter-btn on" data-mode="all" onclick="toggleFeedFilter(false)">All research</button>
         <button class="feed-filter-btn" data-mode="mine" onclick="toggleFeedFilter(true)">My compounds<span id="feedMineCount"></span></button>
       </div>
+      <div class="feed-search-row">
+        <div class="feed-search-wrap">
+          <span class="feed-search-icon">⌕</span>
+          <input class="feed-search" id="feedSearch" type="text"
+                 placeholder="Search titles, compounds, journals…"
+                 oninput="onFeedSearch()" autocomplete="off">
+          <button class="feed-search-clear" id="feedSearchClear" onclick="clearFeedSearch()" style="display:none">✕</button>
+        </div>
+        <select class="feed-compound-select" id="feedCompoundSelect" onchange="setFeedCompound(this.value)">
+          <option value="">All compounds</option>
+        </select>
+      </div>
+      <div class="feed-active-filters" id="feedActiveFilters" style="display:none"></div>
       <div class="feed-src-filters" id="feedSrcFilters">
         <button class="feed-src-btn on" data-src="all" onclick="setFeedSource('all')">All sources</button>
         <button class="feed-src-btn" data-src="pubmed" onclick="setFeedSource('pubmed')">Published papers</button>
@@ -401,6 +414,7 @@
           tracking in the Dose Tracker or have bookmarked.
         </p>
       </div>
+      <div class="feed-count-row"><span id="feedResultCount"></span></div>
       <div id="feedList"></div>
     </div>
   </div>
@@ -776,14 +790,14 @@
   </div>
 </div>
 
-<script src="legal.js?v=1787710833"></script>
+<script src="legal.js?v=1787711930"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js?v=1787710833"></script>
-<script src="analytics.js?v=1787710833"></script>
-<script src="billing.js?v=1787710833"></script>
-<script src="tracker.js?v=1787710833"></script>
-<script src="articles.js?v=1787710833"></script>
-<script src="data.js?v=1787710833"></script>
-<script src="app.js?v=1787710833"></script>
+<script src="auth.js?v=1787711930"></script>
+<script src="analytics.js?v=1787711930"></script>
+<script src="billing.js?v=1787711930"></script>
+<script src="tracker.js?v=1787711930"></script>
+<script src="articles.js?v=1787711930"></script>
+<script src="data.js?v=1787711930"></script>
+<script src="app.js?v=1787711930"></script>
 </body>
 </html>
