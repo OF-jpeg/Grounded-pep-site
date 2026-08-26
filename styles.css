@@ -647,3 +647,13 @@ footer{border-top:1px solid var(--b1);padding:48px 64px 36px;max-width:1400px;ma
 .feed-ai-btn{padding:7px 13px;border-radius:9px;font-size:12px;font-weight:600;color:var(--t2);background:var(--g1);border:1px solid var(--b1);cursor:pointer;font-family:var(--fb);transition:all .15s}
 .feed-ai-btn:hover{color:var(--t1);border-color:rgba(96,165,250,.4);background:rgba(96,165,250,.08)}
 @media(max-width:640px){.feed-ai-btn{flex:1;min-width:calc(50% - 4px);text-align:center}}
+
+/* ═══════════ FEED: SOURCES + EVIDENCE WARNINGS ═══════════ */
+.feed-src-filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.feed-src-btn{padding:6px 13px;border-radius:8px;font-size:11.5px;font-weight:600;color:var(--t3);background:transparent;border:1px solid var(--b1);cursor:pointer;font-family:var(--fb);transition:all .15s}
+.feed-src-btn:hover{color:var(--t2);border-color:var(--b2)}
+.feed-src-btn.on{color:var(--t1);background:var(--g2);border-color:var(--b2)}
+.feed-src{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:3px 9px;border-radius:50px;border:1px solid;background:rgba(255,255,255,.03)}
+.feed-trial-meta{font-size:11.5px;color:var(--t3);margin-bottom:8px;font-family:var(--fm)}
+.feed-warn{font-size:11.5px;line-height:1.5;padding:8px 12px;border-radius:8px;margin-bottom:12px;background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.25);color:#FCD34D}
+.feed-warn-trial{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.22);color:#6EE7B7}

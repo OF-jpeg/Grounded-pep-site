@@ -343,6 +343,14 @@ function renderResearch(){
   }).join('');
 }
 
+// Where a feed item came from, and how much weight it carries
+const FEED_SOURCES={
+  pubmed:{label:'PubMed',color:'#60A5FA',note:''},
+  trial:{label:'Clinical Trial',color:'#34D399',note:'In progress'},
+  europepmc:{label:'Europe PMC',color:'#C4B5FD',note:''},
+  preprint:{label:'Preprint',color:'#FCD34D',note:'Not peer reviewed'}
+};
+
 // ── Detect which compounds a paper is actually about ──────────────────
 // The stored `compounds` field holds the whole search batch, not the real
 // match, so we detect from the paper's own text instead. Punctuation is
@@ -405,6 +413,7 @@ function askAboutPaper(pmid,mode){
 let feedLoaded=false;
 let feedCache=[];
 let feedFilterMine=false;
+let feedSourceFilter='all';
 
 // Compounds this person actually cares about — what they track, plus bookmarks
 function getMyCompounds(){
@@ -440,6 +449,15 @@ function showResTab(tab,btn){
   if(tab==='feed'&&!feedLoaded) loadResearchFeed();
 }
 
+function setFeedSource(src){
+  feedSourceFilter=src;
+  document.querySelectorAll('.feed-src-btn').forEach(b=>{
+    b.classList.toggle('on',b.dataset.src===src);
+  });
+  renderFeedList();
+  if(typeof trackEvent==='function') trackEvent('feed_source',src);
+}
+
 function toggleFeedFilter(mine){
   feedFilterMine=mine;
   document.querySelectorAll('.feed-filter-btn').forEach(b=>{
@@ -464,7 +482,13 @@ function renderFeedList(){
   const wrap=document.getElementById('feedList');
   if(!wrap) return;
   const mine=getMyCompounds();
-  const list=feedFilterMine?feedCache.filter(p=>paperMatchesMine(p,mine)):feedCache;
+  let list=feedFilterMine?feedCache.filter(p=>paperMatchesMine(p,mine)):feedCache;
+  if(feedSourceFilter!=='all'){
+    // europepmc rows are published papers too, so group them with pubmed
+    list=list.filter(p=>feedSourceFilter==='pubmed'
+      ? (p.source==='pubmed'||p.source==='europepmc'||!p.source)
+      : p.source===feedSourceFilter);
+  }
 
   if(feedFilterMine&&!mine.length){
     wrap.innerHTML='<div class="feed-empty">'
@@ -500,12 +524,24 @@ function renderFeedList(){
         }).join('')+'</div>'
       : '';
 
+    const src=FEED_SOURCES[p.source]||FEED_SOURCES.pubmed;
+    const isTrial=p.source==='trial';
+    const isPreprint=p.source==='preprint';
+    // Fall back to a PubMed link for rows stored before urls were saved
+    const link=p.url||('https://pubmed.ncbi.nlm.nih.gov/'+encodeURIComponent(p.pmid)+'/');
+    const linkLabel=isTrial?'View trial ↗':'Read full paper ↗';
+
     return '<div class="feed-item'+(relevant?' feed-relevant':'')+'">'
       +(relevant&&!feedFilterMine?'<div class="feed-tag-mine">Tracks your compounds</div>':'')
-      +'<div class="feed-meta"><span class="feed-journal">'+esc(p.journal||'')+'</span>'
+      +'<div class="feed-meta">'
+      +'<span class="feed-src" style="color:'+src.color+';border-color:'+src.color+'40">'+src.label+'</span>'
+      +(p.journal?'<span class="feed-journal">'+esc(p.journal)+'</span>':'')
       +'<span class="feed-date">'+esc(p.pub_date||'')+'</span>'
       +'<span class="feed-added">added '+timeAgo(p.created_at)+'</span></div>'
       +'<div class="feed-title">'+esc(p.title)+'</div>'
+      +(isTrial&&p.pub_type?'<div class="feed-trial-meta">'+esc(p.pub_type)+'</div>':'')
+      +(isPreprint?'<div class="feed-warn">Preprint — not yet peer reviewed. Treat findings as provisional.</div>':'')
+      +(isTrial?'<div class="feed-warn feed-warn-trial">Registered trial in progress, not a published result.</div>':'')
       +chips
       +(p.authors?'<div class="feed-authors">'+esc(p.authors)+'</div>':'')
       +(short?'<div class="feed-sum">'+esc(short)+(isAI?'<span class="feed-ai-tag">plain-language summary</span>':'')+'</div>':'')
@@ -515,8 +551,8 @@ function renderFeedList(){
       +'<button class="feed-ai-btn" onclick="askAboutPaper(\''+esc(p.pmid)+'\',\'meaning\')">What does this mean for me?</button>'
       +'</div>'
       +'<div class="feed-foot">'
-      +'<a class="feed-link" href="https://pubmed.ncbi.nlm.nih.gov/'+encodeURIComponent(p.pmid)+'/" target="_blank" rel="noopener noreferrer">Read on PubMed ↗</a>'
-      +'<span class="feed-pmid">PMID '+esc(p.pmid)+'</span>'
+      +'<a class="feed-link" href="'+esc(link)+'" target="_blank" rel="noopener noreferrer">'+linkLabel+'</a>'
+      +'<span class="feed-pmid">'+esc(p.pmid)+'</span>'
       +'</div></div>';
   }).join('');
 }
@@ -534,7 +570,7 @@ async function loadResearchFeed(){
   try{
     const {data,error}=await sb
       .from('research_feed')
-      .select('pmid,title,journal,pub_date,authors,pub_type,plain_summary,abstract,compounds,created_at')
+      .select('pmid,title,journal,pub_date,authors,pub_type,plain_summary,abstract,compounds,source,url,created_at')
       .order('created_at',{ascending:false})
       .limit(60);
     if(error) throw error;

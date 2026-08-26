@@ -1,20 +1,29 @@
 # Deploying the PubMed Research Feed
 
-Pulls genuinely new papers from PubMed on a schedule so the Research Hub
-stays current without anyone touching it.
+Pulls new research on a schedule from three public sources so the Research
+Hub stays current without anyone touching it.
 
-Every title, journal, date, and PMID comes straight from NCBI's API.
-Nothing is invented. Plain-language summaries, when enabled, are generated
-only from the real abstract text.
+| Source | What it adds |
+|---|---|
+| **PubMed** | Peer-reviewed published papers |
+| **ClinicalTrials.gov** | Trials *in progress* — often years before publication |
+| **Europe PMC** | Broader coverage, including preprints (clearly labelled) |
+
+Every title, journal, date, and ID comes straight from those APIs. Nothing is
+invented. Summaries, when enabled, are generated only from the real abstract.
+
+**Relevance filtering:** search APIs return loose matches, so anything that
+doesn't actually name one of our compounds is dropped before it's stored. The
+response reports how many were filtered out as `filtered_out`.
 
 ---
 
-## Step 1 — Create the table
+## Step 1 — Create (or update) the table
 
 **Supabase → SQL Editor → New query → Run:**
 
 ```sql
-create table research_feed (
+create table if not exists research_feed (
   id bigserial primary key,
   pmid text unique not null,
   title text not null,
@@ -28,19 +37,24 @@ create table research_feed (
   created_at timestamptz default now()
 );
 
-create index research_feed_created_idx on research_feed (created_at desc);
+-- New columns for multi-source support
+alter table research_feed add column if not exists source text default 'pubmed';
+alter table research_feed add column if not exists url text;
+
+create index if not exists research_feed_created_idx on research_feed (created_at desc);
+create index if not exists research_feed_source_idx on research_feed (source);
 
 alter table research_feed enable row level security;
 
--- Anyone may read the feed; only the service role can write to it
+drop policy if exists "public_read" on research_feed;
 create policy "public_read" on research_feed
   for select to anon, authenticated using (true);
 ```
 
-The `unique` constraint on `pmid` is what prevents duplicates — the function
-relies on it, so don't remove it.
+Safe to re-run — `if not exists` means it won't disturb data you already have.
 
----
+The `unique` constraint on `pmid` is what prevents duplicates. It holds PMIDs
+for papers and NCT IDs for trials.
 
 ## Step 2 — Deploy the function
 

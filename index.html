@@ -30,7 +30,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-<link rel="stylesheet" href="styles.css?v=1787709516">
+<link rel="stylesheet" href="styles.css?v=1787710833">
 </head>
 <body>
 <div class="agegate-ov" id="ageGateOverlay">
@@ -385,6 +385,12 @@
       <div class="feed-filters">
         <button class="feed-filter-btn on" data-mode="all" onclick="toggleFeedFilter(false)">All research</button>
         <button class="feed-filter-btn" data-mode="mine" onclick="toggleFeedFilter(true)">My compounds<span id="feedMineCount"></span></button>
+      </div>
+      <div class="feed-src-filters" id="feedSrcFilters">
+        <button class="feed-src-btn on" data-src="all" onclick="setFeedSource('all')">All sources</button>
+        <button class="feed-src-btn" data-src="pubmed" onclick="setFeedSource('pubmed')">Published papers</button>
+        <button class="feed-src-btn" data-src="trial" onclick="setFeedSource('trial')">Clinical trials</button>
+        <button class="feed-src-btn" data-src="preprint" onclick="setFeedSource('preprint')">Preprints</button>
       </div>
       <div class="feed-head">
         <p style="font-size:13px;color:var(--t3);line-height:1.6">
@@ -770,14 +776,14 @@
   </div>
 </div>
 
-<script src="legal.js?v=1787709516"></script>
+<script src="legal.js?v=1787710833"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js?v=1787709516"></script>
-<script src="analytics.js?v=1787709516"></script>
-<script src="billing.js?v=1787709516"></script>
-<script src="tracker.js?v=1787709516"></script>
-<script src="articles.js?v=1787709516"></script>
-<script src="data.js?v=1787709516"></script>
-<script src="app.js?v=1787709516"></script>
+<script src="auth.js?v=1787710833"></script>
+<script src="analytics.js?v=1787710833"></script>
+<script src="billing.js?v=1787710833"></script>
+<script src="tracker.js?v=1787710833"></script>
+<script src="articles.js?v=1787710833"></script>
+<script src="data.js?v=1787710833"></script>
+<script src="app.js?v=1787710833"></script>
 </body>
 </html>
