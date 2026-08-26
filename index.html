@@ -30,7 +30,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-<link rel="stylesheet" href="styles.css?v=1786712787">
+<link rel="stylesheet" href="styles.css?v=1787708423">
 </head>
 <body>
 <div class="agegate-ov" id="ageGateOverlay">
@@ -89,7 +89,7 @@
         <button class="user-menu-item" onclick="signOutUser()">Sign out</button>
       </div>
     </div>
-    <button class="btn-pro" onclick="show('pricing')">Get Pro ✦</button>
+    <button class="btn-pro" onclick="show('pricing')">Free access ✦</button>
     <button class="nav-burger" id="navBurger" onclick="toggleMobileNav()" aria-label="Open menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
@@ -382,11 +382,17 @@
     </div>
 
     <div class="res-panel" id="res-feed">
+      <div class="feed-filters">
+        <button class="feed-filter-btn on" data-mode="all" onclick="toggleFeedFilter(false)">All research</button>
+        <button class="feed-filter-btn" data-mode="mine" onclick="toggleFeedFilter(true)">My compounds<span id="feedMineCount"></span></button>
+      </div>
       <div class="feed-head">
         <p style="font-size:13px;color:var(--t3);line-height:1.6">
           Pulled automatically from PubMed. Titles, journals, and PMIDs come directly from
           NCBI — nothing here is written by us except the plain-language summaries, which
           are generated from each paper's real abstract.
+          <strong style="color:var(--t2)">"My compounds"</strong> filters to what you're
+          tracking in the Dose Tracker or have bookmarked.
         </p>
       </div>
       <div id="feedList"></div>
@@ -397,59 +403,61 @@
 <div class="page" id="page-pricing">
   <div class="price-page">
     <div class="sl" style="text-align:center">Pricing</div>
-    <h2 class="sh" style="text-align:center">Simple, transparent pricing</h2>
-    <p class="ss" style="margin:0 auto;text-align:center">Start free. Upgrade when you need more depth.</p>
-    <div class="billing-toggle">
-      <button class="bt-opt on" id="btMonthly" onclick="setBilling('monthly')">Monthly</button>
-      <button class="bt-opt" id="btAnnual" onclick="setBilling('annual')">Annual <span class="bt-save">Save 34%</span></button>
+    <h2 class="sh" style="text-align:center">Free while we're building</h2>
+    <p class="ss" style="margin:0 auto 8px;text-align:center">Everything is unlocked. No card, no trial timer, no catch.</p>
+
+    <div class="launch-banner">
+      <span class="launch-dot"></span>
+      Early access — all features free
     </div>
-    <div class="price-cards">
-      <div class="price-c">
-        <div class="price-n">Free</div>
-        <div class="price-a">$0</div>
-        <div class="price-p">/month forever</div>
-        <button class="price-btn pb-free" onclick="show('db')">Get started free</button>
-        <div class="pfs">
-          <div class="pf"><span class="pfy">✓</span> 15 compound profiles</div>
-          <div class="pf"><span class="pfy">✓</span> Basic AI (10 msgs/day)</div>
-          <div class="pf"><span class="pfy">✓</span> Search and filter</div>
-          <div class="pf"><span class="pfy">✓</span> Reconstitution calculator</div>
-          <div class="pf"><span class="pfy">✓</span> 1 free Protocol Builder generation</div>
-          <div class="pf"><span class="pfy">✓</span> 2 curated stacking guides</div>
-          <div class="pf"><span class="pfy">✓</span> 5 bookmarks</div>
-          <div class="pf"><span class="pfy">✓</span> Dose Tracker (2 doses, 1 vial)</div>
-          <div class="pf"><span class="pfn">✕</span> Full database (81 compounds)</div>
-          <div class="pf"><span class="pfn">✕</span> Unlimited streaming AI</div>
-          <div class="pf"><span class="pfn">✕</span> Unlimited Protocol Builder</div>
-          <div class="pf"><span class="pfn">✕</span> Dose Tracker cloud sync</div>
-          <div class="pf"><span class="pfn">✕</span> All 6 stacking guides</div>
-          <div class="pf"><span class="pfn">✕</span> Unlimited bookmarks</div>
-          <div class="pf"><span class="pfn">✕</span> Unlimited Dose Tracker</div>
-          <div class="pf"><span class="pfn">✕</span> Research Hub</div>
-          <div class="pf"><span class="pfn">✕</span> Conversation export</div>
-        </div>
-      </div>
+
+    <div class="price-cards price-cards-launch">
       <div class="price-c feat">
-        <div class="price-badge">Most Popular</div>
-        <div class="price-n">Pro</div>
-        <div class="price-a"><span id="priceAmt">$29</span></div>
-        <div class="price-p" id="pricePer">/month · cancel anytime</div>
-        <button class="price-btn pb-pro">Start Pro — 7 days free</button>
+        <div class="price-badge">Available now</div>
+        <div class="price-n">Everything</div>
+        <div class="price-a">$0</div>
+        <div class="price-p">while we grow the community</div>
+        <button class="price-btn pb-pro" onclick="show('db')">Start exploring</button>
         <div class="pfs">
-          <div class="pf"><span class="pfy">✓</span> Full database — 81 compounds</div>
-          <div class="pf"><span class="pfy">✓</span> Unlimited AI conversations</div>
-          <div class="pf"><span class="pfy">✓</span> Real-time token streaming</div>
+          <div class="pf"><span class="pfy">✓</span> All 81 compound profiles</div>
+          <div class="pf"><span class="pfy">✓</span> AI Research Guide (5 messages/day)</div>
+          <div class="pf"><span class="pfy">✓</span> Adjustable explanation depth</div>
           <div class="pf"><span class="pfy">✓</span> Unlimited Protocol Builder</div>
-          <div class="pf"><span class="pfy">✓</span> Dose Tracker cloud sync</div>
-          <div class="pf"><span class="pfy">✓</span> Full Research Hub</div>
+          <div class="pf"><span class="pfy">✓</span> All 6 stacking protocols</div>
+          <div class="pf"><span class="pfy">✓</span> Dose Tracker + vial inventory</div>
+          <div class="pf"><span class="pfy">✓</span> Reconstitution calculator</div>
+          <div class="pf"><span class="pfy">✓</span> Full Research Hub + live PubMed feed</div>
           <div class="pf"><span class="pfy">✓</span> Unlimited bookmarks</div>
-          <div class="pf"><span class="pfy">✓</span> Unlimited Dose Tracker + vial inventory</div>
-          <div class="pf"><span class="pfy">✓</span> All 6 curated stacking guides</div>
-          <div class="pf"><span class="pfy">✓</span> Conversation export (Markdown / PDF)</div>
+          <div class="pf"><span class="pfy">✓</span> Conversation export</div>
+          <div class="pf"><span class="pfy">✓</span> Side-by-side comparison</div>
         </div>
       </div>
+
+      <div class="price-c price-c-soon">
+        <div class="price-n">Pro <span class="soon-tag">Coming later</span></div>
+        <div class="price-a price-a-soon">TBD</div>
+        <div class="price-p">We'll set pricing once we know what people actually use</div>
+        <button class="price-btn pb-free" disabled style="opacity:.5;cursor:not-allowed">Not yet available</button>
+        <div class="pfs">
+          <div class="pf"><span class="pfy">✓</span> Everything in the free plan, plus:</div>
+          <div class="pf"><span class="pfn">→</span> Unlimited AI conversations</div>
+          <div class="pf"><span class="pfn">→</span> Personalised research alerts</div>
+          <div class="pf"><span class="pfn">→</span> Weekly email digest</div>
+          <div class="pf"><span class="pfn">→</span> Cloud sync across devices</div>
+        </div>
+        <p class="soon-note">
+          Early users won't lose access to anything they're using today.
+        </p>
+      </div>
     </div>
+
+    <p class="launch-why">
+      <strong>Why free?</strong> Pricing a product nobody has used yet is guesswork.
+      We'd rather find out what's genuinely useful first, then charge for that —
+      instead of charging for what we assumed would matter.
+    </p>
   </div>
+
   <footer>
     <div class="fg2">
       <div><div style="display:flex;align-items:center;gap:8px"><div class="logo-g" aria-hidden="true"></div><span class="fl-t">Grounded</span></div><p class="fl-d">The AI-powered peptide research platform for informed, science-curious people.</p><a class="social-btn" href="https://discord.gg/2XcHagbE39" target="_blank" rel="noopener noreferrer" aria-label="Join the Grounded Discord"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.79.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.32.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .31.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.099.246.197.373.291a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.893.077.077 0 0 0-.41.106c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .84.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.331c-1.182 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>Join our Discord</a></div>
@@ -762,14 +770,14 @@
   </div>
 </div>
 
-<script src="legal.js?v=1786712787"></script>
+<script src="legal.js?v=1787708423"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js?v=1786712787"></script>
-<script src="analytics.js?v=1786712787"></script>
-<script src="billing.js?v=1786712787"></script>
-<script src="tracker.js?v=1786712787"></script>
-<script src="articles.js?v=1786712787"></script>
-<script src="data.js?v=1786712787"></script>
-<script src="app.js?v=1786712787"></script>
+<script src="auth.js?v=1787708423"></script>
+<script src="analytics.js?v=1787708423"></script>
+<script src="billing.js?v=1787708423"></script>
+<script src="tracker.js?v=1787708423"></script>
+<script src="articles.js?v=1787708423"></script>
+<script src="data.js?v=1787708423"></script>
+<script src="app.js?v=1787708423"></script>
 </body>
 </html>

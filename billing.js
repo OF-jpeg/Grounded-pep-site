@@ -13,18 +13,36 @@
 const MONTHLY_PRICE = 29;
 const ANNUAL_MONTHLY_PRICE = 19; // billed annually at $228/yr
 
+// ── LAUNCH MODE ───────────────────────────────────────────────────────
+// Everything is free while we build an audience, EXCEPT the AI — every
+// message there costs real money via the Anthropic API, so it stays
+// capped to keep spend predictable.
+//
+// To switch paid tiers back on later: set LAUNCH_MODE to false. All the
+// gating logic below is already written and will start enforcing again.
+const LAUNCH_MODE = true;
+
 const FREE_LIMITS = {
-  compounds: 15,     // most-popular compounds openable on the free plan
-  aiPerDay: 10,      // AI Guide messages per rolling day
-  protocolTotal: 1,  // lifetime free Protocol Builder generations
-  bookmarks: 5,      // saved compounds
-  regimenItems: 2,   // tracked doses in the Dose Tracker
-  vials: 1,          // vials in inventory
-  stacks: 2          // readable curated stacking guides
+  compounds: LAUNCH_MODE ? Infinity : 15,   // compound profiles openable
+  aiPerDay: 5,                              // AI messages/day — always capped, real cost
+  protocolTotal: LAUNCH_MODE ? Infinity : 1,// Protocol Builder generations
+  bookmarks: LAUNCH_MODE ? Infinity : 5,    // saved compounds
+  regimenItems: LAUNCH_MODE ? Infinity : 2, // tracked doses
+  vials: LAUNCH_MODE ? Infinity : 1,        // vials in inventory
+  stacks: LAUNCH_MODE ? Infinity : 2,       // readable stacking guides
+  feedItems: LAUNCH_MODE ? Infinity : 3     // visible papers in the research feed
 };
 
 // ── Plan state ────────────────────────────────────────────────────────
 function isPro() {
+  // During launch everything except the AI cap behaves as unlocked
+  if (LAUNCH_MODE) return true;
+  if (typeof currentUser === 'undefined' || !currentUser) return false;
+  return (currentUser.user_metadata || {}).is_pro === true;
+}
+
+// True Pro status, ignoring launch mode — used for badges and billing UI
+function hasProAccount() {
   if (typeof currentUser === 'undefined' || !currentUser) return false;
   return (currentUser.user_metadata || {}).is_pro === true;
 }
@@ -62,16 +80,18 @@ function incrementAiUsage() {
   updateAiQuotaUI();
 }
 function aiMessagesRemaining() {
-  if (isPro()) return Infinity;
+  // Deliberately uses hasProAccount, not isPro — the AI cap applies during
+  // launch mode because each message costs money
+  if (hasProAccount()) return Infinity;
   return Math.max(0, FREE_LIMITS.aiPerDay - getAiUsedToday());
 }
 function canSendAiMessage() {
-  return isPro() || aiMessagesRemaining() > 0;
+  return hasProAccount() || aiMessagesRemaining() > 0;
 }
 function updateAiQuotaUI() {
   var el = document.getElementById('aiQuota');
   if (!el) return;
-  if (isPro()) { el.style.display = 'none'; return; }
+  if (hasProAccount()) { el.style.display = 'none'; return; }
   var left = aiMessagesRemaining();
   el.style.display = '';
   el.innerHTML = left > 0
@@ -94,27 +114,6 @@ async function markFreeFeatureUsed(feature) {
   try { localStorage.setItem(key, 'true'); } catch (e) {}
   if (typeof currentUser !== 'undefined' && currentUser && typeof sb !== 'undefined') {
     try { await sb.auth.updateUser({ data: { [key]: true } }); } catch (e) {}
-  }
-}
-
-// ── Pricing page monthly/annual toggle ────────────────────────────────
-function setBilling(period) {
-  var monthlyBtn = document.getElementById('btMonthly');
-  var annualBtn = document.getElementById('btAnnual');
-  var amt = document.getElementById('priceAmt');
-  var per = document.getElementById('pricePer');
-  if (!monthlyBtn || !annualBtn || !amt || !per) return;
-
-  if (period === 'annual') {
-    monthlyBtn.classList.remove('on');
-    annualBtn.classList.add('on');
-    amt.textContent = '$' + ANNUAL_MONTHLY_PRICE;
-    per.textContent = '/month · billed $' + (ANNUAL_MONTHLY_PRICE * 12) + '/year';
-  } else {
-    annualBtn.classList.remove('on');
-    monthlyBtn.classList.add('on');
-    amt.textContent = '$' + MONTHLY_PRICE;
-    per.textContent = '/month · cancel anytime';
   }
 }
 
@@ -195,7 +194,7 @@ function closePaywall() {
 
 // ── Reflect plan state across the UI ──────────────────────────────────
 function applyPlanUI() {
-  var pro = isPro();
+  var pro = hasProAccount();
   var badge = document.getElementById('proBadge');
   if (badge) badge.style.display = pro ? '' : 'none';
   var getProBtn = document.querySelector('.btn-pro');

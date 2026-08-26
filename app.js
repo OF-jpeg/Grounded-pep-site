@@ -347,6 +347,34 @@ function renderResearch(){
 // Reads the research_feed table populated by the research-feed Edge
 // Function. Every field originates from NCBI, not from us.
 let feedLoaded=false;
+let feedCache=[];
+let feedFilterMine=false;
+
+// Compounds this person actually cares about — what they track, plus bookmarks
+function getMyCompounds(){
+  const names=new Set();
+  try{
+    (getRegimen()||[]).forEach(r=>{ if(r.peptide) names.add(r.peptide.toLowerCase().trim()); });
+    (getVials()||[]).forEach(v=>{ if(v.peptide) names.add(v.peptide.toLowerCase().trim()); });
+  }catch(e){}
+  bookmarks.forEach(id=>{
+    const p=PEPS.find(x=>x.id===id);
+    if(p) names.add(p.n.toLowerCase().trim());
+  });
+  return [...names].filter(Boolean);
+}
+
+// Does a paper mention any compound this person follows?
+function paperMatchesMine(paper,mine){
+  if(!mine.length) return false;
+  // Strip hyphens and spaces from both sides so "TB-500" matches "TB500"
+  const norm=s=>String(s||'').toLowerCase().replace(/[\s\-–_]/g,'');
+  const hay=norm((paper.title||'')+' '+(paper.compounds||'')+' '+(paper.plain_summary||''));
+  return mine.some(name=>{
+    const n=norm(name);
+    return n.length>=3 && hay.includes(n);
+  });
+}
 
 function showResTab(tab,btn){
   document.querySelectorAll('.res-panel').forEach(e=>e.classList.remove('on'));
@@ -354,6 +382,15 @@ function showResTab(tab,btn){
   document.getElementById('res-'+tab).classList.add('on');
   if(btn) btn.classList.add('on');
   if(tab==='feed'&&!feedLoaded) loadResearchFeed();
+}
+
+function toggleFeedFilter(mine){
+  feedFilterMine=mine;
+  document.querySelectorAll('.feed-filter-btn').forEach(b=>{
+    b.classList.toggle('on',(b.dataset.mode==='mine')===mine);
+  });
+  renderFeedList();
+  if(typeof trackEvent==='function') trackEvent('feed_filter',mine?'mine':'all');
 }
 
 function timeAgo(iso){
@@ -365,6 +402,50 @@ function timeAgo(iso){
   if(days<30) return days+' days ago';
   const months=Math.floor(days/30);
   return months===1?'1 month ago':months+' months ago';
+}
+
+function renderFeedList(){
+  const wrap=document.getElementById('feedList');
+  if(!wrap) return;
+  const mine=getMyCompounds();
+  const list=feedFilterMine?feedCache.filter(p=>paperMatchesMine(p,mine)):feedCache;
+
+  if(feedFilterMine&&!mine.length){
+    wrap.innerHTML='<div class="feed-empty">'
+      +'<strong>Nothing tracked yet.</strong><br>'
+      +'Add compounds to your Dose Tracker or bookmark them, and new research on '
+      +'those specific compounds will show up here.'
+      +'<div style="margin-top:16px"><button class="btn-hero bh2" onclick="show(\'tracker\')">Open Dose Tracker</button></div>'
+      +'</div>';
+    return;
+  }
+  if(!list.length){
+    wrap.innerHTML='<div class="feed-empty">'
+      +(feedFilterMine
+        ? '<strong>No new papers on your compounds yet.</strong><br>We check PubMed daily — this fills in as research is published.'
+        : '<strong>No papers yet.</strong><br>The feed populates once the research-feed function has run.')
+      +'</div>';
+    return;
+  }
+
+  wrap.innerHTML=list.map(p=>{
+    const summary=p.plain_summary||p.abstract||'';
+    const short=summary.length>320?summary.slice(0,320)+'…':summary;
+    const isAI=!!p.plain_summary;
+    const relevant=mine.length&&paperMatchesMine(p,mine);
+    return '<div class="feed-item'+(relevant?' feed-relevant':'')+'">'
+      +(relevant&&!feedFilterMine?'<div class="feed-tag-mine">Tracks your compounds</div>':'')
+      +'<div class="feed-meta"><span class="feed-journal">'+esc(p.journal||'')+'</span>'
+      +'<span class="feed-date">'+esc(p.pub_date||'')+'</span>'
+      +'<span class="feed-added">added '+timeAgo(p.created_at)+'</span></div>'
+      +'<div class="feed-title">'+esc(p.title)+'</div>'
+      +(p.authors?'<div class="feed-authors">'+esc(p.authors)+'</div>':'')
+      +(short?'<div class="feed-sum">'+esc(short)+(isAI?'<span class="feed-ai-tag">plain-language summary</span>':'')+'</div>':'')
+      +'<div class="feed-foot">'
+      +'<a class="feed-link" href="https://pubmed.ncbi.nlm.nih.gov/'+encodeURIComponent(p.pmid)+'/" target="_blank" rel="noopener noreferrer">Read on PubMed ↗</a>'
+      +'<span class="feed-pmid">PMID '+esc(p.pmid)+'</span>'
+      +'</div></div>';
+  }).join('');
 }
 
 async function loadResearchFeed(){
@@ -380,53 +461,14 @@ async function loadResearchFeed(){
   try{
     const {data,error}=await sb
       .from('research_feed')
-      .select('pmid,title,journal,pub_date,authors,pub_type,plain_summary,abstract,created_at')
+      .select('pmid,title,journal,pub_date,authors,pub_type,plain_summary,abstract,compounds,created_at')
       .order('created_at',{ascending:false})
-      .limit(40);
-
+      .limit(60);
     if(error) throw error;
     feedLoaded=true;
-
-    if(!data||!data.length){
-      wrap.innerHTML='<div class="feed-empty">'
-        +'<strong>No papers yet.</strong><br>'
-        +'The feed populates once the research-feed function has run. '
-        +'See <code>supabase/functions/research-feed/DEPLOY.md</code> for setup.'
-        +'</div>';
-      return;
-    }
-
-    const pro=(typeof isPro==='function')?isPro():false;
-    wrap.innerHTML=data.map((p,i)=>{
-      // Free users see the three most recent; the rest need Pro
-      const locked=!pro&&i>=3;
-      const summary=p.plain_summary||p.abstract||'';
-      const short=summary.length>300?summary.slice(0,300)+'…':summary;
-      const isAI=!!p.plain_summary;
-
-      if(locked){
-        return '<div class="feed-item feed-locked" onclick="openPaywall(\'research\')">'
-          +'<div class="pc-lock-badge">🔒 Pro</div>'
-          +'<div class="feed-meta"><span class="feed-journal">'+esc(p.journal||'')+'</span>'
-          +'<span class="feed-date">'+esc(p.pub_date||'')+'</span></div>'
-          +'<div class="feed-title">'+esc(p.title)+'</div>'
-          +'<div class="feed-sum pc-blur">'+esc(short)+'</div>'
-          +'</div>';
-      }
-
-      return '<div class="feed-item">'
-        +'<div class="feed-meta"><span class="feed-journal">'+esc(p.journal||'')+'</span>'
-        +'<span class="feed-date">'+esc(p.pub_date||'')+'</span>'
-        +'<span class="feed-added">added '+timeAgo(p.created_at)+'</span></div>'
-        +'<div class="feed-title">'+esc(p.title)+'</div>'
-        +(p.authors?'<div class="feed-authors">'+esc(p.authors)+'</div>':'')
-        +(short?'<div class="feed-sum">'+esc(short)+(isAI?'<span class="feed-ai-tag">plain-language summary</span>':'')+'</div>':'')
-        +'<div class="feed-foot">'
-        +'<a class="feed-link" href="https://pubmed.ncbi.nlm.nih.gov/'+encodeURIComponent(p.pmid)+'/" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Read on PubMed ↗</a>'
-        +'<span class="feed-pmid">PMID '+esc(p.pmid)+'</span>'
-        +'</div></div>';
-    }).join('');
-
+    feedCache=data||[];
+    updateFeedCounts();
+    renderFeedList();
   }catch(e){
     wrap.innerHTML='<div class="feed-empty">'
       +'<strong>Feed not set up yet.</strong><br>'
@@ -434,6 +476,15 @@ async function loadResearchFeed(){
       +'See <code>supabase/functions/research-feed/DEPLOY.md</code>.'
       +'</div>';
   }
+}
+
+// Shows how many of the loaded papers touch the person's own compounds
+function updateFeedCounts(){
+  const el=document.getElementById('feedMineCount');
+  if(!el) return;
+  const mine=getMyCompounds();
+  const n=mine.length?feedCache.filter(p=>paperMatchesMine(p,mine)).length:0;
+  el.textContent=n?' ('+n+')':'';
 }
 
 // ── Article reading view ──────────────────────────────────────────────
@@ -654,7 +705,7 @@ function renderMobileAuth(){
       +'<div class="user-chip-avatar">'+String(name).charAt(0).toUpperCase()+'</div>'
       +'<div><div class="mnav-user-name">'+name+(pro?' <span class="pro-badge">PRO</span>':'')+'</div>'
       +'<div class="mnav-user-email">'+(user.email||'')+'</div></div></div>'
-      +(pro?'':'<button class="btn-hero bh1" onclick="mobileGo(\'pricing\')">Get Pro ✦</button>')
+      +(pro?'':'<button class="btn-hero bh1" onclick="mobileGo(\'pricing\')">Free access ✦</button>')
       +'<button class="btn-hero bh2" onclick="signOutUser();closeMobileNav()">Sign out</button>';
   } else {
     el.innerHTML='<button class="btn-hero bh1" onclick="closeMobileNav();openAuth(\'signup\')">Sign up</button>'
