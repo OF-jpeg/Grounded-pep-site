@@ -143,8 +143,8 @@ var PAYWALL_COPY = {
     sub: 'Free accounts get ' + FREE_LIMITS.aiPerDay + ' AI messages per day. Upgrade for unlimited conversations.'
   },
   protocol: {
-    title: "You've used your free generation",
-    sub: 'Upgrade to Pro for unlimited access to the Protocol Builder and every other feature on Grounded.'
+    title: "You've used your free quiz",
+    sub: 'Upgrade to Pro for unlimited Stack Finder quizzes and every other feature on Grounded.'
   },
   research: {
     title: 'Research Hub is Pro-only',

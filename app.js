@@ -1,4 +1,4 @@
-let actFilter='all', bookmarks=new Set(), chatSessions=[], curChat=0, protoGoal=null, curModal=null;
+let actFilter='all', bookmarks=new Set(), chatSessions=[], curChat=0, curModal=null;
 
 // ── Bookmark persistence ──────────────────────────────────────────────
 // Bookmarks were previously in-memory only and lost on every refresh.
@@ -59,7 +59,6 @@ function show(pg){
   if(pg==='stacks') renderStacks();
   if(pg==='research'){ renderResearch(); if(!feedLoaded) loadResearchFeed(); }
   if(pg==='tracker') renderTracker();
-  if(pg==='proto') prefillProtoGoal();
   if(pg==='home') renderRecommendations();
   if(pg==='ai'){
     if(typeof updateAiQuotaUI==='function') updateAiQuotaUI();
@@ -185,18 +184,6 @@ function renderRecommendations(){
   sec.style.display='block';
 }
 
-// Pre-select the user's onboarding goal in the Protocol Builder (once per visit)
-function prefillProtoGoal(){
-  if(protoGoal) return; // don't override an active selection
-  const meta=(typeof currentUser!=='undefined'&&currentUser)?(currentUser.user_metadata||{}):{};
-  const goal=meta.research_goal;
-  if(!goal) return;
-  const chips=document.querySelectorAll('#protoGoals .gc2');
-  chips.forEach(chip=>{
-    const oc=chip.getAttribute('onclick')||'';
-    if(oc.includes("'"+goal+"'")) chip.click();
-  });
-}
 
 // Jump to the database pre-filtered to the user's goal category
 function viewGoalCategory(){
@@ -1491,37 +1478,6 @@ function regenLast(){
 }
 
 // PROTOCOL BUILDER
-function selGoal(el,goal){
-  protoGoal=goal;
-  document.querySelectorAll('.gc2').forEach(e=>e.classList.remove('sel'));
-  el.classList.add('sel');
-  const btn=document.getElementById('protoBuild');
-  btn.textContent='Build AI protocol →';btn.style.opacity='1';btn.style.cursor='pointer';
-}
-async function buildProto(){
-  if(!protoGoal){toast('Select a goal first');return;}
-  if(!canUseFreeFeature('protocol')){openPaywall('protocol');return;}
-  const ctx=document.getElementById('protoCtx')?.value||'';
-  const res=document.getElementById('protoRes');
-  const cont=document.getElementById('protoCont');
-  res.classList.add('show');
-  cont.innerHTML='<div style="color:var(--t2);font-style:italic">Building protocol with AI — this takes a few seconds...</div>';
-  const goals={recovery:'Recovery and Healing',fatloss:'Fat Loss and Body Composition',gh:'Growth Hormone Optimization',cognitive:'Cognitive Enhancement',longevity:'Longevity and Anti-Aging',muscle:'Muscle Growth and Performance'};
-  const prompt='Build a comprehensive educational research protocol for: '+goals[protoGoal]+(ctx?'. Context: '+ctx:'')+'.\n\nInclude:\n1. **Recommended compounds** with specific dosage ranges\n2. **Protocol timeline** week-by-week for the first 8 weeks\n3. **Mechanism of synergy** between chosen compounds\n4. **Key considerations** and safety notes\n5. **Suggested further reading**\n\nBe thorough, format with headers, and note this is for educational purposes only.';
-  try{
-    const r=await callClaude({model:CLAUDE_MODEL,max_tokens:1500,system:getSYS(),messages:[{role:'user',content:prompt}]});
-    const d=await r.json();
-    const txt=(d.content||[]).map(b=>b.type==='text'?b.text:'').join('');
-    cont.innerHTML=rMD(txt);
-    markFreeFeatureUsed('protocol');
-  }catch{cont.innerHTML='<em style="color:var(--t3)">Failed to generate protocol. Please try again.</em>';}
-}
-
-// SCROLL REVEAL
-const ro=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:.1});
-document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
-
-// UTILS
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){closeM();}
