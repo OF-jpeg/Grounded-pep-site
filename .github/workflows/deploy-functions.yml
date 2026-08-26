@@ -1,0 +1,77 @@
+name: Deploy Supabase Functions
+
+# Deploys Edge Functions whenever their code changes on main.
+# Also runnable manually from the Actions tab.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_ACCESS_TOKEN  — from supabase.com/dashboard/account/tokens
+#   SUPABASE_PROJECT_REF   — wewrhhetpcalgkdhzxtt
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/functions/**'
+  workflow_dispatch:
+    inputs:
+      function_name:
+        description: 'Deploy one function only (blank = all)'
+        required: false
+        default: ''
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Verify secrets are present
+        env:
+          TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::SUPABASE_ACCESS_TOKEN secret is not set."
+            echo "Add it at Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          if [ -z "$REF" ]; then
+            echo "::error::SUPABASE_PROJECT_REF secret is not set."
+            exit 1
+          fi
+          echo "Secrets present."
+
+      - name: Deploy functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          ONLY: ${{ github.event.inputs.function_name }}
+        run: |
+          set -e
+          if [ -n "$ONLY" ]; then
+            echo "Deploying single function: $ONLY"
+            supabase functions deploy "$ONLY" --project-ref "$PROJECT_REF"
+          else
+            for dir in supabase/functions/*/; do
+              name=$(basename "$dir")
+              # Skip shared code directories, which aren't deployable functions
+              case "$name" in _*) continue ;; esac
+              if [ ! -f "$dir/index.ts" ]; then
+                echo "Skipping $name — no index.ts"
+                continue
+              fi
+              echo "── Deploying $name ──"
+              supabase functions deploy "$name" --project-ref "$PROJECT_REF"
+            done
+          fi
+          echo "Done."
+
+      - name: Summary
+        if: success()
+        run: echo "### Supabase functions deployed" >> $GITHUB_STEP_SUMMARY
