@@ -30,7 +30,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-<link rel="stylesheet" href="styles.css?v=1787708423">
+<link rel="stylesheet" href="styles.css?v=1787709516">
 </head>
 <body>
 <div class="agegate-ov" id="ageGateOverlay">
@@ -373,15 +373,15 @@
     <p style="font-size:14px;color:var(--t2)">Original guides plus a live feed of new papers from PubMed.</p>
 
     <div class="res-tabs">
-      <button class="res-tab on" onclick="showResTab('guides',this)">Guides</button>
-      <button class="res-tab" onclick="showResTab('feed',this)">Latest Research</button>
+      <button class="res-tab on" onclick="showResTab('feed',this)">Latest Research</button>
+      <button class="res-tab" onclick="showResTab('guides',this)">Guides</button>
     </div>
 
-    <div class="res-panel on" id="res-guides">
+    <div class="res-panel" id="res-guides">
       <div class="res-grid" id="resGrid"></div>
     </div>
 
-    <div class="res-panel" id="res-feed">
+    <div class="res-panel on" id="res-feed">
       <div class="feed-filters">
         <button class="feed-filter-btn on" data-mode="all" onclick="toggleFeedFilter(false)">All research</button>
         <button class="feed-filter-btn" data-mode="mine" onclick="toggleFeedFilter(true)">My compounds<span id="feedMineCount"></span></button>
@@ -770,14 +770,14 @@
   </div>
 </div>
 
-<script src="legal.js?v=1787708423"></script>
+<script src="legal.js?v=1787709516"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js?v=1787708423"></script>
-<script src="analytics.js?v=1787708423"></script>
-<script src="billing.js?v=1787708423"></script>
-<script src="tracker.js?v=1787708423"></script>
-<script src="articles.js?v=1787708423"></script>
-<script src="data.js?v=1787708423"></script>
-<script src="app.js?v=1787708423"></script>
+<script src="auth.js?v=1787709516"></script>
+<script src="analytics.js?v=1787709516"></script>
+<script src="billing.js?v=1787709516"></script>
+<script src="tracker.js?v=1787709516"></script>
+<script src="articles.js?v=1787709516"></script>
+<script src="data.js?v=1787709516"></script>
+<script src="app.js?v=1787709516"></script>
 </body>
 </html>

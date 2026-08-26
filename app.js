@@ -57,7 +57,7 @@ function show(pg){
   window.scrollTo(0,0);
   if(pg==='db'){renderDB();renderRecent();}
   if(pg==='stacks') renderStacks();
-  if(pg==='research') renderResearch();
+  if(pg==='research'){ renderResearch(); if(!feedLoaded) loadResearchFeed(); }
   if(pg==='tracker') renderTracker();
   if(pg==='proto') prefillProtoGoal();
   if(pg==='home') renderRecommendations();
@@ -343,6 +343,62 @@ function renderResearch(){
   }).join('');
 }
 
+// ── Detect which compounds a paper is actually about ──────────────────
+// The stored `compounds` field holds the whole search batch, not the real
+// match, so we detect from the paper's own text instead. Punctuation is
+// stripped both sides so "TB-500" matches "TB500".
+function detectCompounds(paper){
+  const norm=s=>String(s||'').toLowerCase().replace(/[\s\-–_]/g,'');
+  const hay=norm((paper.title||'')+' '+(paper.abstract||'')+' '+(paper.plain_summary||''));
+  const found=[];
+  PEPS.forEach(p=>{
+    // Check the display name, the formal name, and any known aliases
+    const candidates=[p.n,p.known,p.alias].filter(Boolean);
+    const hit=candidates.some(c=>{
+      const n=norm(c);
+      return n.length>=4 && hay.includes(n);
+    });
+    if(hit) found.push(p);
+  });
+  return found.slice(0,4); // keep the card readable
+}
+
+// ── AI actions on a paper ─────────────────────────────────────────────
+const PAPER_PROMPTS={
+  simple:{
+    label:'Explain simply',
+    build:p=>`Explain this study in plain language, as if to someone with no science background.\n\nTitle: ${p.title}\nJournal: ${p.journal||'unknown'}\n\n${p.abstract?'Abstract: '+p.abstract:''}\n\nWhat did they do, what did they find, and what does it actually mean? Keep it short.`
+  },
+  evidence:{
+    label:'How strong is this?',
+    build:p=>`Assess the evidence quality of this study.\n\nTitle: ${p.title}\nJournal: ${p.journal||'unknown'}\nType: ${p.pub_type||'unknown'}\n\n${p.abstract?'Abstract: '+p.abstract:''}\n\nCover: was this in vitro, animal, or human? Sample size? Was there a control group? How much weight does this finding actually deserve, and what are its limitations? Be honest if the evidence is weak.`
+  },
+  meaning:{
+    label:'What does this mean for me?',
+    build:p=>{
+      const mine=getMyCompounds();
+      const ctx=mine.length?`\n\nFor context, I currently track: ${mine.join(', ')}.`:'';
+      return `I came across this study and want to understand its practical relevance.\n\nTitle: ${p.title}\n\n${p.abstract?'Abstract: '+p.abstract:''}${ctx}\n\nWhat, if anything, does this change in practice? Be clear about whether it's actionable or just interesting, and don't overstate it.`;
+    }
+  }
+};
+
+function askAboutPaper(pmid,mode){
+  const paper=feedCache.find(p=>p.pmid===pmid);
+  if(!paper) return;
+  const spec=PAPER_PROMPTS[mode];
+  if(!spec) return;
+  if(typeof trackEvent==='function') trackEvent('paper_ai_action',mode);
+  show('ai');
+  setTimeout(()=>{
+    const inp=document.getElementById('aiInp');
+    if(inp){
+      inp.value=spec.build(paper);
+      sendAI();
+    }
+  },300);
+}
+
 // ── Live PubMed feed ──────────────────────────────────────────────────
 // Reads the research_feed table populated by the research-feed Edge
 // Function. Every field originates from NCBI, not from us.
@@ -433,14 +489,31 @@ function renderFeedList(){
     const short=summary.length>320?summary.slice(0,320)+'…':summary;
     const isAI=!!p.plain_summary;
     const relevant=mine.length&&paperMatchesMine(p,mine);
+    const detected=detectCompounds(p);
+    const chips=detected.length
+      ? '<div class="feed-compounds">'+detected.map(c=>{
+          const cc=CATS[c.cat]||{c:'#93C5FD'};
+          const isMine=mine.some(m=>m.replace(/[\s\-–_]/g,'').toLowerCase()===c.n.replace(/[\s\-–_]/g,'').toLowerCase());
+          return '<button class="feed-chip'+(isMine?' feed-chip-mine':'')+'" style="color:'+cc.c+'" '
+            +'onclick="event.stopPropagation();openM(\''+c.id+'\')" '
+            +'title="Open '+esc(c.n)+' profile">'+esc(c.n)+'</button>';
+        }).join('')+'</div>'
+      : '';
+
     return '<div class="feed-item'+(relevant?' feed-relevant':'')+'">'
       +(relevant&&!feedFilterMine?'<div class="feed-tag-mine">Tracks your compounds</div>':'')
       +'<div class="feed-meta"><span class="feed-journal">'+esc(p.journal||'')+'</span>'
       +'<span class="feed-date">'+esc(p.pub_date||'')+'</span>'
       +'<span class="feed-added">added '+timeAgo(p.created_at)+'</span></div>'
       +'<div class="feed-title">'+esc(p.title)+'</div>'
+      +chips
       +(p.authors?'<div class="feed-authors">'+esc(p.authors)+'</div>':'')
       +(short?'<div class="feed-sum">'+esc(short)+(isAI?'<span class="feed-ai-tag">plain-language summary</span>':'')+'</div>':'')
+      +'<div class="feed-actions">'
+      +'<button class="feed-ai-btn" onclick="askAboutPaper(\''+esc(p.pmid)+'\',\'simple\')">Explain simply</button>'
+      +'<button class="feed-ai-btn" onclick="askAboutPaper(\''+esc(p.pmid)+'\',\'evidence\')">How strong is this?</button>'
+      +'<button class="feed-ai-btn" onclick="askAboutPaper(\''+esc(p.pmid)+'\',\'meaning\')">What does this mean for me?</button>'
+      +'</div>'
       +'<div class="feed-foot">'
       +'<a class="feed-link" href="https://pubmed.ncbi.nlm.nih.gov/'+encodeURIComponent(p.pmid)+'/" target="_blank" rel="noopener noreferrer">Read on PubMed ↗</a>'
       +'<span class="feed-pmid">PMID '+esc(p.pmid)+'</span>'
