@@ -689,6 +689,7 @@ async function loadResearchFeed(){
     populateFeedCompounds();
     renderFeedList();
     renderActiveFilters();
+    if(typeof refreshNotifications==='function') refreshNotifications();
   }catch(e){
     wrap.innerHTML='<div class="feed-empty">'
       +'<strong>Feed not set up yet.</strong><br>'
@@ -1485,6 +1486,9 @@ document.addEventListener('keydown',e=>{
 });
 
 // INIT
+// Preload the feed in the background so the notification badge is accurate
+// on first paint, without the person needing to open the Research tab.
+setTimeout(()=>{ if(typeof loadResearchFeed==='function'&&!feedLoaded) loadResearchFeed(); },1200);
 loadComplexity();
 renderComplexityUI();
 renderDB();

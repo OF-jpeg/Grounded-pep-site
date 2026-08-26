@@ -78,6 +78,7 @@ const QUIZ_QUESTIONS = [
 
 let quizStep = 0;
 let quizAnswers = {};
+let lastShortlist = [];
 
 // ── Flow control ──────────────────────────────────────────────────────
 function startQuiz() {
@@ -215,6 +216,7 @@ async function finishQuiz() {
   if (typeof trackEvent === 'function') trackEvent('quiz_complete', quizAnswers.goal || 'unspecified');
 
   const shortlist = shortlistCompounds();
+  lastShortlist = shortlist;
 
   // Recap of what they chose
   const recap = Object.entries(quizAnswers)
@@ -250,7 +252,18 @@ async function finishQuiz() {
      <div class="quiz-ai-block">
        <div class="quiz-ai-head">Why these, and how they fit together</div>
        <div id="quizAiText" class="quiz-ai-text"><em style="color:var(--t3)">Analysing…</em></div>
-     </div>`;
+     </div>
+     <div class="quiz-upsell" id="quizUpsell">
+       <div class="quiz-upsell-body">
+         <div class="quiz-upsell-title">Want a full stack built from these?</div>
+         <div class="quiz-upsell-sub">
+           A complete protocol — which compounds to combine, in what order, how they interact,
+           what to watch for, and how to tell whether it's working.
+         </div>
+       </div>
+       <button class="btn-hero bh1" onclick="buildOptimalStack()">Build my stack →</button>
+     </div>
+     <div id="quizStackResult"></div>`;
 
   document.getElementById('quizLoading').style.display = 'none';
   document.getElementById('quizResult').style.display = '';
@@ -291,4 +304,99 @@ Be direct and specific. This is educational information about what the research 
     document.getElementById('quizAiText').innerHTML =
       '<em style="color:var(--t3)">Could not reach the AI right now. The compounds above still match your answers.</em>';
   }
+}
+
+
+// ── Optimal stack (deeper second step) ────────────────────────────────
+// Goes beyond the shortlist: which to actually combine, sequencing,
+// interactions, and how to evaluate whether it worked.
+async function buildOptimalStack() {
+  // Gated once launch mode ends
+  if (typeof isPro === 'function' && !isPro()) {
+    openPaywall('stack_builder');
+    return;
+  }
+  if (!lastShortlist.length) { toast('Complete the quiz first'); return; }
+
+  const upsell = document.getElementById('quizUpsell');
+  const out = document.getElementById('quizStackResult');
+  if (upsell) upsell.style.display = 'none';
+
+  out.innerHTML = `<div class="quiz-ai-block">
+    <div class="quiz-ai-head">Your stack</div>
+    <div class="quiz-stack-loading">
+      <div class="quiz-spinner" style="width:22px;height:22px;margin:0 12px 0 0"></div>
+      <span>Building the full protocol…</span>
+    </div>
+  </div>`;
+
+  if (typeof trackEvent === 'function') trackEvent('optimal_stack_build', quizAnswers.goal || 'unspecified');
+
+  const answerSummary = Object.entries(quizAnswers)
+    .map(([k, v]) => `${k}: ${answerLabel(k, v)}`).join('; ');
+  const detail = lastShortlist.map(p =>
+    `- ${p.n}: ${p.mech} | Typical dose: ${p.dose} | Frequency: ${p.freq} | Half-life: ${p.hl} | Route: ${p.admin} | Status: ${p.status}`
+  ).join('\n');
+
+  const prompt = `Design an educational stack from the shortlist below, for someone who told us:
+${answerSummary}
+
+Shortlist:
+${detail}
+
+Structure the response with these headers:
+
+## The stack
+Which 2-3 of these to combine, and the mechanistic reason they work together rather than overlapping. Say explicitly which ones NOT to combine and why.
+
+## Sequencing
+What to start first and why. Whether to add things one at a time, and how long to wait between additions.
+
+## Interactions and overlap
+Where these compounds share pathways, where effects could stack unhelpfully, and any combination that needs particular care.
+
+## How to tell if it's working
+Specific things to track, and a realistic timeframe before judging results.
+
+## The main risk
+The single most important thing this person should understand before proceeding, given their experience level.
+
+Use the dosing information supplied above — do not invent numbers beyond it. This is educational information about what the research suggests, not a prescription. Keep it tight and specific, around 400 words.`;
+
+  try {
+    const res = await callClaude({
+      model: CLAUDE_MODEL,
+      max_tokens: 1400,
+      system: getSYS(),
+      messages: [{ role: 'user', content: prompt }],
+    });
+    const data = await res.json();
+    const txt = (data.content || []).map(b => b.type === 'text' ? b.text : '').join('');
+    out.innerHTML = `<div class="quiz-ai-block quiz-stack-block">
+      <div class="quiz-ai-head">Your stack</div>
+      <div class="quiz-ai-text">${txt ? rMD(txt) : '<em>Could not generate.</em>'}</div>
+      <div class="quiz-stack-actions">
+        <button class="btn-hero bh2" onclick="askStackFollowup()">Ask the AI about this</button>
+        <button class="btn-hero bh2" onclick="show('tracker')">Add to Dose Tracker</button>
+      </div>
+    </div>`;
+  } catch (e) {
+    out.innerHTML = `<div class="quiz-ai-block">
+      <div class="quiz-ai-text"><em style="color:var(--t3)">Could not reach the AI right now. Try again in a moment.</em></div>
+    </div>`;
+    if (upsell) upsell.style.display = '';
+  }
+}
+
+// Carries the stack into the AI chat for follow-up questions
+function askStackFollowup() {
+  const names = lastShortlist.slice(0, 3).map(p => p.n).join(', ');
+  show('ai');
+  setTimeout(() => {
+    const inp = document.getElementById('aiInp');
+    if (inp) {
+      inp.value = `I'm researching a stack of ${names}. What should I understand about combining these before going further?`;
+      inp.focus();
+    }
+  }, 300);
 }

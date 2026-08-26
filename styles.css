@@ -731,3 +731,38 @@ footer{border-top:1px solid var(--b1);padding:48px 64px 36px;max-width:1400px;ma
 .quiz-result-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}
 .quiz-disclaimer{background:var(--g1);border:1px solid var(--b1);border-radius:var(--r);padding:16px 18px;font-size:12.5px;color:var(--t3);line-height:1.65;font-style:italic}
 @media(max-width:640px){.quiz-q{font-size:22px}.quiz-pick{padding:15px 16px;gap:12px}}
+
+/* ═══════════ NOTIFICATIONS ═══════════ */
+.notif-wrap{position:relative}
+.notif-btn{position:relative;width:36px;height:36px;border-radius:10px;background:var(--g1);border:1px solid var(--b1);color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.notif-btn:hover{color:var(--t1);border-color:var(--b2)}
+.notif-btn.has-new{color:#93C5FD;border-color:rgba(96,165,250,.4)}
+.notif-badge{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 5px;border-radius:50px;background:#3B82F6;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--base)}
+.notif-panel{position:absolute;top:calc(100% + 10px);right:0;width:min(370px,88vw);max-height:460px;overflow-y:auto;background:var(--base);border:1px solid var(--b2);border-radius:var(--rx);box-shadow:0 20px 60px rgba(0,0,0,.6);opacity:0;transform:translateY(-8px);pointer-events:none;transition:opacity .16s,transform .16s;z-index:200}
+.notif-panel.open{opacity:1;transform:none;pointer-events:all}
+.notif-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--b1);position:sticky;top:0;background:var(--base);z-index:2}
+.notif-title{font-size:13px;font-weight:600;color:var(--t1)}
+.notif-close{width:24px;height:24px;border-radius:6px;background:var(--g2);border:1px solid var(--b1);color:var(--t3);font-size:11px;cursor:pointer}
+.notif-close:hover{color:var(--t1)}
+.notif-body{padding:8px}
+.notif-item{padding:12px 14px;border-radius:10px;cursor:pointer;transition:background .15s;margin-bottom:2px}
+.notif-item:hover{background:var(--g1)}
+.notif-item-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.notif-src{font-size:9.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.notif-time{font-size:10.5px;color:var(--t3)}
+.notif-item-title{font-size:13px;font-weight:500;color:var(--t1);line-height:1.45;margin-bottom:5px}
+.notif-item-compounds{font-size:11px;color:#93C5FD}
+.notif-empty{padding:28px 20px;text-align:center;color:var(--t3);font-size:13px;line-height:1.65}
+.notif-empty strong{color:var(--t1);display:block;margin-bottom:6px}
+.notif-empty p{margin-bottom:14px}
+.notif-mark-all{width:100%;padding:10px;margin-top:6px;border-radius:9px;background:var(--g1);border:1px solid var(--b1);color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fb)}
+.notif-mark-all:hover{color:var(--t1);border-color:var(--b2)}
+
+/* ═══════════ QUIZ UPSELL + STACK ═══════════ */
+.quiz-upsell{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:22px 24px;margin-bottom:24px;border-radius:var(--rx);background:linear-gradient(135deg,rgba(59,130,246,.11),rgba(99,102,241,.07));border:1px solid rgba(99,102,241,.28)}
+.quiz-upsell-body{flex:1;min-width:240px}
+.quiz-upsell-title{font-family:var(--fd);font-size:17px;font-weight:700;color:var(--t1);margin-bottom:5px}
+.quiz-upsell-sub{font-size:13px;color:var(--t2);line-height:1.6}
+.quiz-stack-loading{display:flex;align-items:center;font-size:13.5px;color:var(--t2)}
+.quiz-stack-block{border-color:rgba(96,165,250,.3)}
+.quiz-stack-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px;padding-top:18px;border-top:1px solid var(--b1)}

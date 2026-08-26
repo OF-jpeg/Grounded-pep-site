@@ -166,6 +166,14 @@ var PAYWALL_COPY = {
     title: 'This stack is Pro-only',
     sub: 'Free accounts get ' + FREE_LIMITS.stacks + ' curated stacking guides. Upgrade to unlock every protocol.'
   },
+  stack_builder: {
+    title: 'Full stack builder is Pro-only',
+    sub: 'Get a complete protocol from your quiz results — what to combine, in what order, how they interact, and how to tell if it is working.'
+  },
+  notification: {
+    title: 'Research alerts are Pro-only',
+    sub: 'Get notified when new studies are published on the compounds you track, and read them the moment they land.'
+  },
   export: {
     title: 'Conversation export is Pro-only',
     sub: 'Upgrade to download your AI conversations as Markdown or PDF, or copy them in full.'
