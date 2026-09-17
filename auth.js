@@ -239,6 +239,8 @@ function updateAuthUI(user) {
   if (typeof renderRecommendations === 'function') renderRecommendations();
   // Reflect Pro/Free plan state across gated UI
   if (typeof applyPlanUI === 'function') applyPlanUI();
+  // Keep email alert targeting in step with what they track
+  if (user && typeof syncEmailPrefs === 'function') syncEmailPrefs();
 }
 
 // ── Profile completion: DOB gap-fill + onboarding ────────────────────

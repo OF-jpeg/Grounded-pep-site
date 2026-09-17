@@ -30,7 +30,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-<link rel="stylesheet" href="styles.css?v=1789605237">
+<link rel="stylesheet" href="styles.css?v=1789606111">
 </head>
 <body>
 <div class="agegate-ov" id="ageGateOverlay">
@@ -63,6 +63,7 @@
 <canvas id="bgCanvas"></canvas>
 <div class="aurora"><div class="a1"></div><div class="a2"></div><div class="a3"></div></div>
 <div class="bg-grid"></div>
+<div class="unsub-banner" id="unsubBanner" style="display:none"></div>
 <nav id="mainNav">
   <div class="logo" onclick="show('home')"><div class="logo-g" aria-hidden="true"></div><span class="logo-t">Grounded</span></div>
   <div class="nav-links">
@@ -99,6 +100,7 @@
       <div class="user-chip-avatar" id="userChipAvatar">U</div>
       <span id="userChipName">User</span><span class="pro-badge" id="proBadge" style="display:none">PRO</span>
       <div class="user-menu" id="userMenu">
+        <button class="um-item" onclick="toggleUserMenu();openEmailPrefs()">Email settings</button>
         <div class="user-menu-email" id="userMenuEmail"></div>
         <button class="user-menu-item" onclick="signOutUser()">Sign out</button>
       </div>
@@ -812,6 +814,17 @@
   </div>
 </div>
 
+<div class="m-ov" id="emailPrefsOverlay" onclick="if(event.target.id==='emailPrefsOverlay')closeEmailPrefs()">
+  <div class="modal" style="width:520px;max-width:100%">
+    <button class="m-x" onclick="closeEmailPrefs()">✕</button>
+    <div class="ep-head">
+      <div class="ep-title">Email settings</div>
+      <div class="ep-sub">Choose what we're allowed to send you.</div>
+    </div>
+    <div class="ep-body" id="emailPrefsBody"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <div class="auth-ov" id="authOverlay" onclick="handleAuthMO(event)">
@@ -931,17 +944,18 @@
   </div>
 </div>
 
-<script src="data.js?v=1789605237"></script>
-<script src="articles.js?v=1789605237"></script>
-<script src="legal.js?v=1789605237"></script>
+<script src="data.js?v=1789606111"></script>
+<script src="articles.js?v=1789606111"></script>
+<script src="legal.js?v=1789606111"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js?v=1789605237"></script>
-<script src="analytics.js?v=1789605237"></script>
-<script src="billing.js?v=1789605237"></script>
-<script src="tracker.js?v=1789605237"></script>
-<script src="app.js?v=1789605237"></script>
-<script src="community.js?v=1789605237"></script>
-<script src="notifications.js?v=1789605237"></script>
-<script src="quiz.js?v=1789605237"></script>
+<script src="auth.js?v=1789606111"></script>
+<script src="analytics.js?v=1789606111"></script>
+<script src="billing.js?v=1789606111"></script>
+<script src="tracker.js?v=1789606111"></script>
+<script src="app.js?v=1789606111"></script>
+<script src="community.js?v=1789606111"></script>
+<script src="notifications.js?v=1789606111"></script>
+<script src="email.js?v=1789606111"></script>
+<script src="quiz.js?v=1789606111"></script>
 </body>
 </html>

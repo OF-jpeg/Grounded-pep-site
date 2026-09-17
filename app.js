@@ -211,6 +211,7 @@ function toggleBm(e,id){
   removing?bookmarks.delete(id):bookmarks.add(id);
   saveBookmarks();
   invalidateMyCompounds();
+  if(typeof syncEmailPrefs==='function') syncEmailPrefs();
   renderDB();
   toast(removing?'Removed bookmark':'Bookmarked ✓');
 }
