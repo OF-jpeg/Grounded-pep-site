@@ -23,6 +23,51 @@
 <meta name="twitter:title" content="Grounded — Know what you're taking.">
 <meta name="twitter:description" content="Research 80 peptides with an AI guide that explains mechanisms, dosing, and stacking in plain language.">
 <meta name="twitter:image" content="https://groundedpeptides.com/og-image.png">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://groundedpeptides.com/#website",
+      "url": "https://groundedpeptides.com/",
+      "name": "Grounded",
+      "description": "Research 81 peptides with an AI guide that explains mechanisms, dosing and evidence in plain language.",
+      "publisher": { "@id": "https://groundedpeptides.com/#org" },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": { "@type": "EntryPoint", "urlTemplate": "https://groundedpeptides.com/?p=db&q={search_term_string}" },
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://groundedpeptides.com/#org",
+      "name": "Grounded",
+      "url": "https://groundedpeptides.com/",
+      "logo": "https://groundedpeptides.com/icon-512.png",
+      "description": "An educational peptide research platform. Not a vendor and not a medical provider."
+    },
+    {
+      "@type": "WebApplication",
+      "name": "Grounded",
+      "url": "https://groundedpeptides.com/",
+      "applicationCategory": "HealthApplication",
+      "operatingSystem": "Any",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "81 peptide compound profiles",
+        "AI research guide with adjustable explanation depth",
+        "Daily research feed from PubMed, ClinicalTrials.gov and Europe PMC",
+        "Dose tracker with vial inventory",
+        "Reconstitution calculator"
+      ]
+    }
+  ]
+}
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -30,7 +75,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-<link rel="stylesheet" href="styles.css?v=1789607839">
+<link rel="stylesheet" href="styles.css?v=1789608591">
 </head>
 <body>
 <div class="agegate-ov" id="ageGateOverlay">
@@ -638,7 +683,13 @@
   <div class="modal" id="modal">
     <button class="m-x" onclick="closeM()">✕</button>
     <div class="m-head">
-      <div id="mBadge"></div>
+      <div class="m-head-top">
+        <div id="mBadge"></div>
+        <button class="m-share" onclick="copyCompoundLink()" title="Copy link to this compound">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          Share
+        </button>
+      </div>
       <div class="m-name" id="mName">Peptide</div>
       <div class="m-sub" id="mSub">Full name</div>
     </div>
@@ -944,18 +995,18 @@
   </div>
 </div>
 
-<script src="data.js?v=1789607839"></script>
-<script src="articles.js?v=1789607839"></script>
-<script src="legal.js?v=1789607839"></script>
+<script src="data.js?v=1789608591"></script>
+<script src="articles.js?v=1789608591"></script>
+<script src="legal.js?v=1789608591"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js?v=1789607839"></script>
-<script src="analytics.js?v=1789607839"></script>
-<script src="billing.js?v=1789607839"></script>
-<script src="tracker.js?v=1789607839"></script>
-<script src="app.js?v=1789607839"></script>
-<script src="community.js?v=1789607839"></script>
-<script src="notifications.js?v=1789607839"></script>
-<script src="email.js?v=1789607839"></script>
-<script src="quiz.js?v=1789607839"></script>
+<script src="auth.js?v=1789608591"></script>
+<script src="analytics.js?v=1789608591"></script>
+<script src="billing.js?v=1789608591"></script>
+<script src="tracker.js?v=1789608591"></script>
+<script src="app.js?v=1789608591"></script>
+<script src="community.js?v=1789608591"></script>
+<script src="notifications.js?v=1789608591"></script>
+<script src="email.js?v=1789608591"></script>
+<script src="quiz.js?v=1789608591"></script>
 </body>
 </html>

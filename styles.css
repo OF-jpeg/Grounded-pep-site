@@ -858,3 +858,9 @@ footer{border-top:1px solid var(--b1);padding:48px 64px 36px;max-width:1400px;ma
 
 /* Deep-link loading state */
 .deeplink-loading{display:flex;align-items:center;justify-content:center;padding:40px 20px;font-size:14px;color:var(--t2)}
+
+/* Share link button in the compound modal */
+.m-head-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px}
+.m-share{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:var(--g1);border:1px solid var(--b1);color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fb);transition:all .15s;flex-shrink:0;margin-right:34px}
+.m-share:hover{color:var(--t1);border-color:var(--b2)}
+.m-share svg{flex-shrink:0}

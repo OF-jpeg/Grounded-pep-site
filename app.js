@@ -65,6 +65,7 @@ function show(pg){
     if(typeof updateAiQuotaUI==='function') updateAiQuotaUI();
     renderComplexityUI();
   }
+  if(typeof updateURL==='function') updateURL();
 }
 window.addEventListener('scroll',()=>document.getElementById('mainNav').classList.toggle('scrolled',scrollY>30));
 
@@ -251,11 +252,12 @@ function openM(id){
   renderResearchLinks(p);
   renderCitations(p);
   populateCompareSelect(id);
+  if(typeof updateURL==='function') updateURL();
   mTab('ov',document.querySelector('.mt'));
   document.getElementById('mOverlay').classList.add('open');
   document.body.style.overflow='hidden';
 }
-function closeM(){const o=document.getElementById('mOverlay');if(o)o.classList.remove('open');document.body.style.overflow='';}
+function closeM(){const o=document.getElementById('mOverlay');if(o)o.classList.remove('open');curModal=null;if(typeof updateURL==='function')updateURL();document.body.style.overflow='';}
 function handleMO(e){if(e.target.id==='mOverlay')closeM();}
 function mTab(tab,btn){
   document.querySelectorAll('.mtc').forEach(e=>e.classList.remove('on'));
@@ -414,6 +416,62 @@ const PAPER_PROMPTS={
     }
   }
 };
+
+// ── URL routing ───────────────────────────────────────────────────────
+// Without this the whole site is one URL: nothing is shareable and Google
+// can only ever index the homepage. Uses query params so it works on
+// GitHub Pages, which has no server-side rewrites.
+let _suppressUrlWrite = false;
+
+function updateURL(){
+  if(_suppressUrlWrite) return;
+  const params = new URLSearchParams();
+  if(currentPage && currentPage !== 'home') params.set('p', currentPage);
+  if(curModal) params.set('c', curModal);
+  const qs = params.toString();
+  const url = qs ? `${location.pathname}?${qs}` : location.pathname;
+  history.replaceState({ page: currentPage, modal: curModal }, '', url);
+}
+
+// Restores state from the URL on load, so a shared link opens the right thing
+async function restoreFromURL(){
+  const params = new URLSearchParams(location.search);
+  // Email deep links and unsubscribe are handled by their own flows
+  if(params.get('paper') || params.get('unsubscribe')) return false;
+
+  const page = params.get('p');
+  const compound = params.get('c');
+  if(!page && !compound) return false;
+
+  _suppressUrlWrite = true;
+  if(page) show(page);
+  if(compound && PEPS.find(p => p.id === compound)){
+    // openM handles its own gating and recent-view tracking
+    openM(compound);
+  }
+  _suppressUrlWrite = false;
+  updateURL();
+  return true;
+}
+
+// Browser back/forward
+window.addEventListener('popstate', e => {
+  const s = e.state || {};
+  _suppressUrlWrite = true;
+  if(s.modal) openM(s.modal);
+  else { closeM(); if(s.page) show(s.page); }
+  _suppressUrlWrite = false;
+});
+
+// Copies a link to the compound currently open
+function copyCompoundLink(){
+  if(!curModal) return;
+  const url = `${location.origin}${location.pathname}?p=db&c=${encodeURIComponent(curModal)}`;
+  navigator.clipboard.writeText(url)
+    .then(() => toast('Link copied ✓'))
+    .catch(() => toast('Could not copy — try again'));
+  if(typeof trackEvent === 'function') trackEvent('share_compound', curModal);
+}
 
 // ── Deep links from emails ────────────────────────────────────────────
 // Emails link to /?paper=<pmid>&ask=<mode> so a click lands in the AI with
@@ -1641,7 +1699,7 @@ function initReveal(){
 
 // INIT
 // A ?paper= link from an email takes priority over the normal landing flow
-window.addEventListener('load',()=>{ handlePaperDeepLink(); });
+window.addEventListener('load',()=>{ handlePaperDeepLink(); restoreFromURL(); });
 
 // Preload the feed in the background so the notification badge is accurate
 // on first paint, without the person needing to open the Research tab.

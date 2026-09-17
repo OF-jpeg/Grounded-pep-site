@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# No value in crawling these
+Disallow: /*?unsubscribe=
+Disallow: /*?paper=
+
+Sitemap: https://groundedpeptides.com/sitemap.xml
