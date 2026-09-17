@@ -415,6 +415,54 @@ const PAPER_PROMPTS={
   }
 };
 
+// ── Deep links from emails ────────────────────────────────────────────
+// Emails link to /?paper=<pmid>&ask=<mode> so a click lands in the AI with
+// that study already loaded, rather than dumping someone on a raw abstract.
+async function handlePaperDeepLink(){
+  const params=new URLSearchParams(window.location.search);
+  const pmid=params.get('paper');
+  if(!pmid) return false;
+  const mode=params.get('ask')||'simple';
+  history.replaceState({},'',window.location.pathname);
+
+  show('ai');
+  const msgs=document.getElementById('aiMsgs');
+  if(msgs){
+    const wrap=document.createElement('div');
+    wrap.className='deeplink-loading';
+    wrap.innerHTML='<div class="quiz-spinner" style="width:20px;height:20px;margin:0 10px 0 0"></div><span>Loading that study…</span>';
+    msgs.appendChild(wrap);
+  }
+
+  // The feed may not have loaded yet when arriving cold from an email
+  if(!feedLoaded) await loadResearchFeed();
+
+  let paper=feedCache.find(p=>p.pmid===pmid);
+  // Fall back to a direct lookup if it has aged out of the cached window
+  if(!paper&&typeof sb!=='undefined'){
+    try{
+      const {data}=await sb.from('research_feed').select('*').eq('pmid',pmid).maybeSingle();
+      if(data){ paper=data; feedCache.unshift(data); }
+    }catch(e){}
+  }
+
+  document.querySelectorAll('.deeplink-loading').forEach(e=>e.remove());
+
+  if(!paper){
+    toast('Could not find that study');
+    return true;
+  }
+
+  const spec=PAPER_PROMPTS[mode]||PAPER_PROMPTS.simple;
+  const inp=document.getElementById('aiInp');
+  if(inp){
+    inp.value=spec.build(paper);
+    sendAI();
+  }
+  if(typeof trackEvent==='function') trackEvent('email_deeplink',mode);
+  return true;
+}
+
 function askAboutPaper(pmid,mode){
   const paper=feedCache.find(p=>p.pmid===pmid);
   if(!paper) return;
@@ -1592,6 +1640,9 @@ function initReveal(){
 }
 
 // INIT
+// A ?paper= link from an email takes priority over the normal landing flow
+window.addEventListener('load',()=>{ handlePaperDeepLink(); });
+
 // Preload the feed in the background so the notification badge is accurate
 // on first paint, without the person needing to open the Research tab.
 setTimeout(()=>{ if(typeof loadResearchFeed==='function'&&!feedLoaded) loadResearchFeed(); },1200);

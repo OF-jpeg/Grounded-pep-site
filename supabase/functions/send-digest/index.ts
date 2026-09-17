@@ -66,6 +66,9 @@ function buildEmail(firstName: string, papers: Record<string, string>[], token: 
     const badgeFg = isTrial ? "#047857" : isPreprint ? "#B45309" : "#1D4ED8";
     const link = p.url || `https://pubmed.ncbi.nlm.nih.gov/${p.pmid}/`;
     const journal = p.journal ? esc(p.journal) : "";
+    // Deep links land in the AI with this study already loaded
+    const aiSimple = `${SITE_URL}/?paper=${encodeURIComponent(p.pmid)}&ask=simple`;
+    const aiEvidence = `${SITE_URL}/?paper=${encodeURIComponent(p.pmid)}&ask=evidence`;
 
     return `
     <tr><td style="padding:0 0 14px">
@@ -88,8 +91,21 @@ function buildEmail(firstName: string, papers: Record<string, string>[], token: 
           ${isPreprint ? `<div style="font-size:12px;color:#92400E;background:#FFFBEB;border-left:3px solid #F59E0B;border-radius:4px;padding:10px 12px;margin-top:14px;line-height:1.5">Not yet peer reviewed \u2014 treat findings as provisional.</div>` : ""}
           ${isTrial ? `<div style="font-size:12px;color:#065F46;background:#ECFDF5;border-left:3px solid #10B981;border-radius:4px;padding:10px 12px;margin-top:14px;line-height:1.5">Registered trial in progress, not a published result.</div>` : ""}
 
-          <div style="margin-top:16px;padding-top:14px;border-top:1px solid #F1F5F9">
-            <a href="${esc(link)}" style="font-size:13px;font-weight:600;color:#2563EB;text-decoration:none">Read the full study &rarr;</a>
+          <div style="margin-top:16px;padding-top:15px;border-top:1px solid #F1F5F9">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:#94A3B8;margin-bottom:10px">Ask our AI about this</div>
+            <table cellpadding="0" cellspacing="0" role="presentation">
+              <tr>
+                <td style="padding-right:8px">
+                  <a href="${esc(aiSimple)}" style="display:inline-block;font-size:12.5px;font-weight:600;color:#1D4ED8;background:#EFF6FF;border:1px solid #BFDBFE;padding:8px 14px;border-radius:8px;text-decoration:none">Explain simply</a>
+                </td>
+                <td style="padding-right:8px">
+                  <a href="${esc(aiEvidence)}" style="display:inline-block;font-size:12.5px;font-weight:600;color:#1D4ED8;background:#EFF6FF;border:1px solid #BFDBFE;padding:8px 14px;border-radius:8px;text-decoration:none">How strong is this?</a>
+                </td>
+              </tr>
+            </table>
+            <div style="margin-top:12px">
+              <a href="${esc(link)}" style="font-size:12px;color:#94A3B8;text-decoration:underline">Or read the original study</a>
+            </div>
           </div>
 
         </td></tr>

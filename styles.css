@@ -855,3 +855,6 @@ footer{border-top:1px solid var(--b1);padding:48px 64px 36px;max-width:1400px;ma
 .ep-signin{text-align:center;padding:30px 20px}
 .ep-signin p{font-size:14px;color:var(--t2);margin-bottom:18px}
 @media(max-width:600px){.ep-head{padding:30px 22px 20px}.ep-body{padding:20px 22px 30px}}
+
+/* Deep-link loading state */
+.deeplink-loading{display:flex;align-items:center;justify-content:center;padding:40px 20px;font-size:14px;color:var(--t2)}
