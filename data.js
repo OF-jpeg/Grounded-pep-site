@@ -135,6 +135,18 @@ const CITATIONS = {
     {pmid:'30122305', title:'Efficacy and safety of semaglutide compared with liraglutide and placebo for weight loss in patients with obesity', journal:'The Lancet', year:'2018',
      note:'Head-to-head dose-ranging phase 2 trial against liraglutide — useful for understanding why semaglutide superseded it.'}
   ],
+  tb500: [
+    {pmid:'20536453', title:'Animal studies with thymosin beta 4, a multifunctional tissue repair and regeneration peptide', journal:'Ann N Y Acad Sci', year:'2010',
+     note:'Review of the animal work that underpins the dermal, corneal and cardiac wound-repair trials. Useful for understanding what has actually been demonstrated, and in which species.'},
+    {pmid:'23050819', title:'Cardiac repair with thymosin beta-4 and cardiac reprogramming factors', journal:'Ann N Y Acad Sci', year:'2012',
+     note:'Animal study on cardiac tissue repair. Relevant to the angiogenesis and cell-survival mechanisms often cited for TB-500 — note this is a distinct application from the tendon and ligament use it is usually discussed for.'}
+  ],
+  semax: [
+    {pmid:'29798983', title:'The efficacy of semax in the treatment of patients at different stages of ischemic stroke', journal:'Zh Nevrol Psikhiatr Im S S Korsakova', year:'2018',
+     note:'Human clinical trial, 110 patients, measuring plasma BDNF, motor performance and Barthel index after stroke. Important caveat: it was neither randomised nor placebo-controlled, which meaningfully limits how much weight the result carries.'},
+    {pmid:'14556513', title:'The heptapeptide SEMAX stimulates BDNF expression in different areas of the rat brain in vivo', journal:'Dokl Biol Sci', year:'2003',
+     note:'Rat study. This is the source of the widely-repeated claim that Semax raises BDNF — worth reading to see that the finding is animal-level, not human.'}
+  ],
   tirzepatide: [
     {pmid:'35658024', title:'Tirzepatide Once Weekly for the Treatment of Obesity', journal:'New England Journal of Medicine', year:'2022',
      note:'The SURMOUNT-1 trial — 2,539 participants, 72 weeks. Weight reductions of 16.0% to 22.5% depending on dose.'},
