@@ -732,6 +732,7 @@ async function loadResearchFeed(){
     renderFeedList();
     renderActiveFilters();
     if(typeof refreshNotifications==='function') refreshNotifications();
+    renderHomeFeed();
   }catch(e){
     wrap.innerHTML='<div class="feed-empty">'
       +'<strong>Feed not set up yet.</strong><br>'
@@ -1527,11 +1528,74 @@ document.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();show('db');setTimeout(()=>document.getElementById('dbSearch')?.focus(),100);}
 });
 
+// ── Homepage research preview ─────────────────────────────────────────
+// Shows the three most recent papers. Proof the site is live rather than
+// a static brochure — hidden entirely if the feed has nothing.
+function renderHomeFeed(){
+  const sec=document.getElementById('homeFeedSec');
+  const grid=document.getElementById('homeFeedGrid');
+  if(!sec||!grid) return;
+  if(!feedCache||!feedCache.length){ sec.style.display='none'; return; }
+
+  const items=feedCache.slice(0,3);
+  grid.innerHTML=items.map(p=>{
+    const src=(typeof FEED_SOURCES!=='undefined'&&FEED_SOURCES[p.source])||{label:'Research',color:'#60A5FA'};
+    const compounds=(typeof detectCompounds==='function'?detectCompounds(p):[]).slice(0,2);
+    const summary=p.plain_summary||p.abstract||'';
+    return '<div class="home-feed-card" onclick="show(\'research\')">'
+      +'<div class="home-feed-meta">'
+      +'<span class="feed-src" style="color:'+src.color+';border-color:'+src.color+'40">'+src.label+'</span>'
+      +'<span class="feed-date">'+esc(p.pub_date||'')+'</span></div>'
+      +'<div class="home-feed-title">'+esc(p.title.slice(0,110))+(p.title.length>110?'…':'')+'</div>'
+      +(summary?'<div class="home-feed-sum">'+esc(summary.slice(0,140))+'…</div>':'')
+      +(compounds.length?'<div class="home-feed-tags">'+compounds.map(c=>{
+          const cc=CATS[c.cat]||{c:'#93C5FD'};
+          return '<span class="home-feed-tag" style="color:'+cc.c+'">'+esc(c.n)+'</span>';
+        }).join('')+'</div>':'')
+      +'</div>';
+  }).join('');
+  sec.style.display='';
+  // Newly shown element needs the reveal class applied
+  sec.classList.add('visible');
+}
+
+// ── Scroll reveal ─────────────────────────────────────────────────────
+// .reveal starts at opacity:0 and needs .visible added to fade in. Without
+// this, anything marked .reveal stays permanently invisible.
+function initReveal(){
+  const els=document.querySelectorAll('.reveal');
+  if(!els.length) return;
+  // No IntersectionObserver (old browser) — just show everything
+  if(!('IntersectionObserver' in window)){
+    els.forEach(e=>e.classList.add('visible'));
+    return;
+  }
+  const io=new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        entry.target.classList.add('visible');
+        io.unobserve(entry.target);
+      }
+    });
+  },{threshold:0.08,rootMargin:'0px 0px -40px 0px'});
+  els.forEach(e=>io.observe(e));
+
+  // Safety net: if anything is still hidden shortly after load (observer
+  // didn't fire because it was already in view, or a layout quirk), show it.
+  setTimeout(()=>{
+    document.querySelectorAll('.reveal:not(.visible)').forEach(e=>{
+      const r=e.getBoundingClientRect();
+      if(r.top < window.innerHeight + 200) e.classList.add('visible');
+    });
+  },600);
+}
+
 // INIT
 // Preload the feed in the background so the notification badge is accurate
 // on first paint, without the person needing to open the Research tab.
 setTimeout(()=>{ if(typeof loadResearchFeed==='function'&&!feedLoaded) loadResearchFeed(); },1200);
 loadComplexity();
 renderComplexityUI();
+initReveal();
 renderDB();
 initAI();
