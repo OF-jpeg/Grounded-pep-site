@@ -54,45 +54,75 @@ function buildEmail(firstName: string, papers: Record<string, string>[], token: 
   const greeting = firstName ? `Hi ${esc(firstName)},` : "Hi,";
   const count = papers.length;
   const unsubUrl = `${SITE_URL}/?unsubscribe=${encodeURIComponent(token)}`;
+  const logoUrl = `${SITE_URL}/email-logo.png`;
 
   const items = papers.map((p) => {
     const compounds = p.compounds ? esc(p.compounds) : "";
-    const summary = (p.plain_summary || p.abstract || "").slice(0, 220);
+    const summary = (p.plain_summary || p.abstract || "").slice(0, 200);
     const isTrial = p.source === "trial";
     const isPreprint = p.source === "preprint";
     const badge = isTrial ? "Clinical trial" : isPreprint ? "Preprint" : "Published paper";
-    const badgeColour = isTrial ? "#059669" : isPreprint ? "#B45309" : "#2563EB";
+    const badgeBg = isTrial ? "#ECFDF5" : isPreprint ? "#FFFBEB" : "#EFF6FF";
+    const badgeFg = isTrial ? "#047857" : isPreprint ? "#B45309" : "#1D4ED8";
     const link = p.url || `https://pubmed.ncbi.nlm.nih.gov/${p.pmid}/`;
+    const journal = p.journal ? esc(p.journal) : "";
 
     return `
-    <tr><td style="padding:0 0 22px">
-      <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #E5E9F0;border-radius:10px;background:#FFFFFF">
-        <tr><td style="padding:18px 20px">
-          <div style="font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:${badgeColour};margin-bottom:8px">${badge}</div>
-          <div style="font-size:16px;font-weight:600;color:#0F172A;line-height:1.4;margin-bottom:8px">${esc(p.title)}</div>
-          ${compounds ? `<div style="font-size:12px;color:#2563EB;margin-bottom:10px">${compounds}</div>` : ""}
-          ${summary ? `<div style="font-size:13.5px;color:#475569;line-height:1.65;margin-bottom:14px">${esc(summary)}…</div>` : ""}
-          ${isPreprint ? `<div style="font-size:12px;color:#B45309;background:#FEF3C7;border-radius:6px;padding:8px 10px;margin-bottom:12px">Not yet peer reviewed — treat findings as provisional.</div>` : ""}
-          ${isTrial ? `<div style="font-size:12px;color:#065F46;background:#D1FAE5;border-radius:6px;padding:8px 10px;margin-bottom:12px">Registered trial in progress, not a published result.</div>` : ""}
-          <a href="${esc(link)}" style="font-size:13px;font-weight:600;color:#2563EB;text-decoration:none">Read it →</a>
+    <tr><td style="padding:0 0 14px">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation"
+             style="border:1px solid #E2E8F0;border-radius:12px;background:#FFFFFF;border-collapse:separate">
+        <tr><td style="padding:20px 22px">
+
+          <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+            <tr>
+              <td><span style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:${badgeFg};background:${badgeBg};padding:4px 10px;border-radius:20px">${badge}</span></td>
+              <td align="right" style="font-size:11px;color:#94A3B8">${esc(p.pub_date || "")}</td>
+            </tr>
+          </table>
+
+          <div style="font-size:16px;font-weight:600;color:#0F172A;line-height:1.45;margin:14px 0 0">${esc(p.title)}</div>
+          ${journal ? `<div style="font-size:12px;color:#64748B;margin-top:6px">${journal}</div>` : ""}
+          ${compounds ? `<div style="font-size:12px;font-weight:600;color:#2563EB;margin-top:10px">${compounds}</div>` : ""}
+          ${summary ? `<div style="font-size:13.5px;color:#475569;line-height:1.7;margin-top:12px">${esc(summary)}\u2026</div>` : ""}
+
+          ${isPreprint ? `<div style="font-size:12px;color:#92400E;background:#FFFBEB;border-left:3px solid #F59E0B;border-radius:4px;padding:10px 12px;margin-top:14px;line-height:1.5">Not yet peer reviewed \u2014 treat findings as provisional.</div>` : ""}
+          ${isTrial ? `<div style="font-size:12px;color:#065F46;background:#ECFDF5;border-left:3px solid #10B981;border-radius:4px;padding:10px 12px;margin-top:14px;line-height:1.5">Registered trial in progress, not a published result.</div>` : ""}
+
+          <div style="margin-top:16px;padding-top:14px;border-top:1px solid #F1F5F9">
+            <a href="${esc(link)}" style="font-size:13px;font-weight:600;color:#2563EB;text-decoration:none">Read the full study &rarr;</a>
+          </div>
+
         </td></tr>
       </table>
     </td></tr>`;
   }).join("");
 
   return `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#F1F5F9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F1F5F9;padding:32px 16px">
-    <tr><td align="center">
-      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px">
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>New research on compounds you track</title>
+</head>
+<body style="margin:0;padding:0;background:#F1F5F9;-webkit-font-smoothing:antialiased;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
 
-        <tr><td style="padding-bottom:24px">
-          <div style="font-size:20px;font-weight:700;color:#0F172A;letter-spacing:-.4px">Grounded</div>
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0">
+    ${count === 1 ? "One new study" : count + " new studies"} on compounds you track &mdash; ${esc(papers[0].title.slice(0, 80))}
+  </div>
+
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#F1F5F9;padding:36px 16px">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px">
+
+        <tr><td align="center" style="padding-bottom:28px">
+          <img src="${logoUrl}" width="52" height="52" alt="Grounded"
+               style="display:block;border-radius:14px;margin:0 auto 12px">
+          <div style="font-size:19px;font-weight:700;color:#0F172A;letter-spacing:-.3px">Grounded</div>
+          <div style="font-size:12px;color:#94A3B8;margin-top:3px">Research alert</div>
         </td></tr>
 
-        <tr><td style="padding-bottom:24px">
-          <div style="font-size:15px;color:#334155;line-height:1.7">
+        <tr><td style="padding:0 4px 24px">
+          <div style="font-size:15px;color:#334155;line-height:1.75">
             ${greeting}<br><br>
             ${count === 1
               ? "One new study was published on a compound you're tracking."
@@ -102,18 +132,21 @@ function buildEmail(firstName: string, papers: Record<string, string>[], token: 
 
         ${items}
 
-        <tr><td style="padding:8px 0 28px">
-          <a href="${SITE_URL}" style="display:inline-block;background:#0F172A;color:#FFFFFF;font-size:14px;font-weight:600;padding:12px 24px;border-radius:8px;text-decoration:none">See all research</a>
+        <tr><td align="center" style="padding:14px 0 32px">
+          <a href="${SITE_URL}" style="display:inline-block;background:#0F172A;color:#FFFFFF;font-size:14px;font-weight:600;padding:13px 28px;border-radius:10px;text-decoration:none">See all research</a>
         </td></tr>
 
-        <tr><td style="border-top:1px solid #E2E8F0;padding-top:20px">
-          <div style="font-size:12px;color:#94A3B8;line-height:1.7">
+        <tr><td style="border-top:1px solid #E2E8F0;padding-top:22px">
+          <div style="font-size:12px;color:#94A3B8;line-height:1.75">
             Grounded provides educational information for research purposes only.
             This is not medical advice. Consult a licensed healthcare professional
             before using any compound.
-            <br><br>
-            You're getting this because you asked for research alerts.
-            <a href="${esc(unsubUrl)}" style="color:#64748B">Unsubscribe</a>
+          </div>
+          <div style="font-size:12px;color:#94A3B8;line-height:1.75;margin-top:14px">
+            You're receiving this because you asked for research alerts on compounds you track.<br>
+            <a href="${SITE_URL}" style="color:#64748B;text-decoration:underline">Manage preferences</a>
+            &nbsp;&middot;&nbsp;
+            <a href="${esc(unsubUrl)}" style="color:#64748B;text-decoration:underline">Unsubscribe</a>
           </div>
         </td></tr>
 

@@ -81,14 +81,21 @@ async function syncEmailPrefs() {
       return;
     }
 
-    // Only write if what they track actually changed
+    // Write if tracked compounds changed, or if first_name is missing —
+    // accounts created before the name field existed have a blank greeting
     const prev = (emailPrefs.tracked_compounds || []).slice().sort().join('|');
     const now = tracked.slice().sort().join('|');
-    if (prev !== now) {
+    const nameMissing = !emailPrefs.first_name && meta.first_name;
+    if (prev !== now || nameMissing) {
       await sb.from('email_preferences')
-        .update({ tracked_compounds: tracked, email: currentUser.email })
+        .update({
+          tracked_compounds: tracked,
+          email: currentUser.email,
+          first_name: meta.first_name || emailPrefs.first_name || null,
+        })
         .eq('user_id', currentUser.id);
       emailPrefs.tracked_compounds = tracked;
+      if (meta.first_name) emailPrefs.first_name = meta.first_name;
     }
   } catch (e) { /* table may not exist yet */ }
 }
