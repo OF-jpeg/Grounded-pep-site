@@ -250,7 +250,15 @@ async function finishQuiz() {
   document.getElementById('quizAiResult').innerHTML =
     `<div class="quiz-picks">${cards}</div>
      <div class="quiz-ai-block">
-       <div class="quiz-ai-head">Why these, and how they fit together</div>
+       <div class="quiz-ai-head-row">
+         <div class="quiz-ai-head">Why these, and how they fit together</div>
+         <div class="quiz-cx" id="quizCxWhy">
+           <span class="quiz-cx-label">Explain like:</span>
+           <button class="quiz-cx-btn" data-lvl="easy" onclick="regenWhy('easy')">Simple</button>
+           <button class="quiz-cx-btn" data-lvl="normal" onclick="regenWhy('normal')">Standard</button>
+           <button class="quiz-cx-btn" data-lvl="hard" onclick="regenWhy('hard')">Technical</button>
+         </div>
+       </div>
        <div id="quizAiText" class="quiz-ai-text"><em style="color:var(--t3)">Analysing…</em></div>
      </div>
      <div class="quiz-upsell" id="quizUpsell">
@@ -274,6 +282,43 @@ async function finishQuiz() {
   const compoundList = shortlist.map(p =>
     `${p.n} (${p.status}, half-life ${p.hl}, ${p.admin})`).join('\n');
 
+  _whyContext = { answerSummary, compoundList };
+  await generateWhy();
+}
+
+// Kept so the explanation can be regenerated at a different reading level
+let _whyContext = null;
+
+// Temporarily overrides the global complexity setting for one request, so
+// changing the reading level here doesn't silently change it site-wide.
+async function withComplexity(level, fn) {
+  if (!level) return fn();
+  const prev = typeof complexityLevel !== 'undefined' ? complexityLevel : null;
+  complexityLevel = level;
+  try { return await fn(); }
+  finally { complexityLevel = prev; }
+}
+
+function markQuizCx(containerId, level) {
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  wrap.querySelectorAll('.quiz-cx-btn').forEach(b => {
+    b.classList.toggle('on', b.dataset.lvl === level);
+  });
+}
+
+async function regenWhy(level) {
+  if (!_whyContext) return;
+  markQuizCx('quizCxWhy', level);
+  const el = document.getElementById('quizAiText');
+  if (el) el.innerHTML = '<em style="color:var(--t3)">Rewriting…</em>';
+  if (typeof trackEvent === 'function') trackEvent('quiz_why_complexity', level);
+  await generateWhy(level);
+}
+
+async function generateWhy(level) {
+  if (!_whyContext) return;
+  const { answerSummary, compoundList } = _whyContext;
   const prompt = `Someone completed a quiz on our peptide education platform. Their answers:
 ${answerSummary}
 
@@ -288,20 +333,21 @@ Write a short educational explanation covering:
 
 Be direct and specific. This is educational information about what the research says — not a prescription, and not personalised medical advice. Do not invent dosing protocols. Remind them to consult a healthcare professional, but briefly and only once. Around 250 words.`;
 
+  const el = document.getElementById('quizAiText');
   try {
-    const res = await callClaude({
+    const res = await withComplexity(level, () => callClaude({
       model: CLAUDE_MODEL,
       max_tokens: 900,
       system: getSYS(),
       messages: [{ role: 'user', content: prompt }],
-    });
+    }));
     const data = await res.json();
     const txt = (data.content || []).map(b => b.type === 'text' ? b.text : '').join('');
-    document.getElementById('quizAiText').innerHTML = txt
+    if (el) el.innerHTML = txt
       ? rMD(txt)
       : '<em style="color:var(--t3)">Could not generate an explanation. The compounds above still match your answers.</em>';
   } catch (e) {
-    document.getElementById('quizAiText').innerHTML =
+    if (el) el.innerHTML =
       '<em style="color:var(--t3)">Could not reach the AI right now. The compounds above still match your answers.</em>';
   }
 }
@@ -310,7 +356,7 @@ Be direct and specific. This is educational information about what the research 
 // ── Optimal stack (deeper second step) ────────────────────────────────
 // Goes beyond the shortlist: which to actually combine, sequencing,
 // interactions, and how to evaluate whether it worked.
-async function buildOptimalStack() {
+async function buildOptimalStack(level) {
   // Gated once launch mode ends
   if (typeof isPro === 'function' && !isPro()) {
     openPaywall('stack_builder');
@@ -326,7 +372,7 @@ async function buildOptimalStack() {
     <div class="quiz-ai-head">Your stack</div>
     <div class="quiz-stack-loading">
       <div class="quiz-spinner" style="width:22px;height:22px;margin:0 12px 0 0"></div>
-      <span>Building the full protocol…</span>
+      <span>${level ? 'Rewriting at a different level…' : 'Building the full protocol…'}</span>
     </div>
   </div>`;
 
@@ -364,22 +410,31 @@ The single most important thing this person should understand before proceeding,
 Use the dosing information supplied above — do not invent numbers beyond it. This is educational information about what the research suggests, not a prescription. Keep it tight and specific, around 400 words.`;
 
   try {
-    const res = await callClaude({
+    const res = await withComplexity(level, () => callClaude({
       model: CLAUDE_MODEL,
       max_tokens: 1400,
       system: getSYS(),
       messages: [{ role: 'user', content: prompt }],
-    });
+    }));
     const data = await res.json();
     const txt = (data.content || []).map(b => b.type === 'text' ? b.text : '').join('');
     out.innerHTML = `<div class="quiz-ai-block quiz-stack-block">
-      <div class="quiz-ai-head">Your stack</div>
+      <div class="quiz-ai-head-row">
+        <div class="quiz-ai-head">Your stack</div>
+        <div class="quiz-cx" id="quizCxStack">
+          <span class="quiz-cx-label">Explain like:</span>
+          <button class="quiz-cx-btn" data-lvl="easy" onclick="buildOptimalStack('easy')">Simple</button>
+          <button class="quiz-cx-btn" data-lvl="normal" onclick="buildOptimalStack('normal')">Standard</button>
+          <button class="quiz-cx-btn" data-lvl="hard" onclick="buildOptimalStack('hard')">Technical</button>
+        </div>
+      </div>
       <div class="quiz-ai-text">${txt ? rMD(txt) : '<em>Could not generate.</em>'}</div>
       <div class="quiz-stack-actions">
         <button class="btn-hero bh2" onclick="askStackFollowup()">Ask the AI about this</button>
         <button class="btn-hero bh2" onclick="show('tracker')">Add to Dose Tracker</button>
       </div>
     </div>`;
+    markQuizCx('quizCxStack', level);
   } catch (e) {
     out.innerHTML = `<div class="quiz-ai-block">
       <div class="quiz-ai-text"><em style="color:var(--t3)">Could not reach the AI right now. Try again in a moment.</em></div>
