@@ -210,6 +210,7 @@ function toggleBm(e,id){
   }
   removing?bookmarks.delete(id):bookmarks.add(id);
   saveBookmarks();
+  invalidateMyCompounds();
   renderDB();
   toast(removing?'Removed bookmark':'Bookmarked ✓');
 }
@@ -253,7 +254,7 @@ function openM(id){
   document.getElementById('mOverlay').classList.add('open');
   document.body.style.overflow='hidden';
 }
-function closeM(){document.getElementById('mOverlay').classList.remove('open');document.body.style.overflow='';}
+function closeM(){const o=document.getElementById('mOverlay');if(o)o.classList.remove('open');document.body.style.overflow='';}
 function handleMO(e){if(e.target.id==='mOverlay')closeM();}
 function mTab(tab,btn){
   document.querySelectorAll('.mtc').forEach(e=>e.classList.remove('on'));
@@ -343,20 +344,54 @@ const FEED_SOURCES={
 // The stored `compounds` field holds the whole search batch, not the real
 // match, so we detect from the paper's own text instead. Punctuation is
 // stripped both sides so "TB-500" matches "TB500".
-function detectCompounds(paper){
-  const norm=s=>String(s||'').toLowerCase().replace(/[\s\-–_]/g,'');
-  const hay=norm((paper.title||'')+' '+(paper.abstract||'')+' '+(paper.plain_summary||''));
-  const found=[];
-  PEPS.forEach(p=>{
-    // Check the display name, the formal name, and any known aliases
-    const candidates=[p.n,p.known,p.alias].filter(Boolean);
-    const hit=candidates.some(c=>{
-      const n=norm(c);
-      return n.length>=4 && hay.includes(n);
-    });
-    if(hit) found.push(p);
+//
+// Two optimisations, because this runs across every paper on every filter
+// change: compound names are normalised once up front rather than per
+// paper, and results are cached per paper ID.
+const _normCache = new Map();
+function _norm(s) {
+  const k = String(s || '');
+  let v = _normCache.get(k);
+  if (v === undefined) {
+    v = k.toLowerCase().replace(/[\s\-–_]/g, '');
+    _normCache.set(k, v);
+  }
+  return v;
+}
+
+// Built once: every compound paired with its normalised search terms.
+// `known` holds several names separated by "·" (e.g. "Ozempic · Wegovy"),
+// so it has to be split — normalising the whole string would never match.
+let _compoundTerms = null;
+function getCompoundTerms(){
+  if (_compoundTerms) return _compoundTerms;
+  _compoundTerms = PEPS.map(p => {
+    const raw = [p.n, p.known, p.alias].filter(Boolean)
+      .flatMap(s => String(s).split(/[·,/]|\s+or\s+/i));
+    return {
+      p,
+      terms: [...new Set(raw.map(c => _norm(c)).filter(n => n.length >= 4))]
+    };
   });
-  return found.slice(0,4); // keep the card readable
+  return _compoundTerms;
+}
+
+const _detectCache = new Map();
+function detectCompounds(paper){
+  const key = paper.pmid || paper.title;
+  if (key && _detectCache.has(key)) return _detectCache.get(key);
+
+  const hay = _norm((paper.title||'')+' '+(paper.abstract||'')+' '+(paper.plain_summary||''));
+  const found = [];
+  const terms = getCompoundTerms();
+  for (let i = 0; i < terms.length && found.length < 4; i++) {
+    const t = terms[i];
+    for (let j = 0; j < t.terms.length; j++) {
+      if (hay.includes(t.terms[j])) { found.push(t.p); break; }
+    }
+  }
+  if (key) _detectCache.set(key, found);
+  return found;
 }
 
 // ── AI actions on a paper ─────────────────────────────────────────────
@@ -406,7 +441,13 @@ let feedCompoundFilter='';
 let feedSearchQuery='';
 
 // Compounds this person actually cares about — what they track, plus bookmarks
+// Cached because this parses localStorage and is called several times per
+// render. invalidateMyCompounds() is called wherever tracked items change.
+let _myCompoundsCache=null;
+function invalidateMyCompounds(){ _myCompoundsCache=null; }
+
 function getMyCompounds(){
+  if(_myCompoundsCache) return _myCompoundsCache;
   const names=new Set();
   try{
     (getRegimen()||[]).forEach(r=>{ if(r.peptide) names.add(r.peptide.toLowerCase().trim()); });
@@ -416,17 +457,17 @@ function getMyCompounds(){
     const p=PEPS.find(x=>x.id===id);
     if(p) names.add(p.n.toLowerCase().trim());
   });
-  return [...names].filter(Boolean);
+  _myCompoundsCache=[...names].filter(Boolean);
+  return _myCompoundsCache;
 }
 
 // Does a paper mention any compound this person follows?
 function paperMatchesMine(paper,mine){
   if(!mine.length) return false;
-  // Strip hyphens and spaces from both sides so "TB-500" matches "TB500"
-  const norm=s=>String(s||'').toLowerCase().replace(/[\s\-–_]/g,'');
-  const hay=norm((paper.title||'')+' '+(paper.compounds||'')+' '+(paper.plain_summary||''));
+  // _norm is memoised, so repeated calls across a filter pass are cheap
+  const hay=_norm((paper.title||'')+' '+(paper.compounds||'')+' '+(paper.plain_summary||''));
   return mine.some(name=>{
-    const n=norm(name);
+    const n=_norm(name);
     return n.length>=3 && hay.includes(n);
   });
 }

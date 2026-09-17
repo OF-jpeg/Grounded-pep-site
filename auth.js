@@ -161,11 +161,15 @@ async function handleAuthSubmit(e) {
 // ── OAuth (Google / GitHub) ──────────────────────────────────────────
 async function signInWithProvider(provider) {
   clearAuthError();
-  const { error } = await sb.auth.signInWithOAuth({
-    provider,
-    options: { redirectTo: window.location.href.split('#')[0].split('?')[0] }
-  });
-  if (error) showAuthError(error.message || 'Could not start sign-in. Please try again.');
+  try {
+    const { error } = await sb.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: window.location.href.split('#')[0].split('?')[0] }
+    });
+    if (error) showAuthError(error.message || 'Could not start sign-in. Please try again.');
+  } catch (e) {
+    showAuthError('Could not reach the sign-in service. Check your connection and try again.');
+  }
 }
 
 // ── Sign out ─────────────────────────────────────────────────────────
@@ -364,15 +368,28 @@ async function skipOnboarding() {
 // Pro state only appeared after a tab-focus event re-fired onAuthStateChange.
 function bootAuth() {
   (async function () {
-    const { data: { session } } = await sb.auth.getSession();
+    // If this throws (offline, Supabase unreachable) we still need to render
+    // the signed-out UI — otherwise the nav stays half-initialised and the
+    // hooks into billing.js and app.js never fire.
+    let session = null;
+    try {
+      const res = await sb.auth.getSession();
+      session = res?.data?.session || null;
+    } catch (e) {
+      console.warn('Could not restore session:', e);
+    }
     updateAuthUI(session?.user || null);
     checkProfileCompletion(session?.user || null);
   })();
 
-  sb.auth.onAuthStateChange((_event, session) => {
-    updateAuthUI(session?.user || null);
-    checkProfileCompletion(session?.user || null);
-  });
+  try {
+    sb.auth.onAuthStateChange((_event, session) => {
+      updateAuthUI(session?.user || null);
+      checkProfileCompletion(session?.user || null);
+    });
+  } catch (e) {
+    console.warn('Auth state listener failed to attach:', e);
+  }
 }
 
 if (document.readyState === 'complete') {

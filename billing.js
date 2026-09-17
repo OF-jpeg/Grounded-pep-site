@@ -99,11 +99,15 @@ function updateAiQuotaUI() {
     : "Daily limit reached · <a onclick=\"show('pricing')\">Upgrade for unlimited</a>";
 }
 
-// ── One-time free feature usage (Protocol Builder) ────────────────────
+// ── One-time free feature usage ───────────────────────────────────────
 function canUseFreeFeature(feature) {
   if (isPro()) return true;
   var key = 'grounded_free_used_' + feature;
-  if (localStorage.getItem(key) === 'true') return false;
+  // Safari in private mode throws on localStorage access — fall through to
+  // the account check rather than breaking the whole gate
+  try {
+    if (localStorage.getItem(key) === 'true') return false;
+  } catch (e) {}
   if (typeof currentUser !== 'undefined' && currentUser) {
     if ((currentUser.user_metadata || {})[key] === true) return false;
   }
@@ -192,11 +196,14 @@ function openPaywall(context) {
   var s = document.getElementById('paywallSub');
   if (t) t.textContent = copy.title;
   if (s) s.textContent = copy.sub;
-  document.getElementById('paywallOverlay').classList.add('open');
+  var ov = document.getElementById('paywallOverlay');
+  if (!ov) return;
+  ov.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 function closePaywall() {
-  document.getElementById('paywallOverlay').classList.remove('open');
+  var ov = document.getElementById('paywallOverlay');
+  if (ov) ov.classList.remove('open');
   document.body.style.overflow = '';
 }
 

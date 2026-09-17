@@ -168,7 +168,8 @@ function openLegal(key) {
 }
 
 function closeLegal() {
-  document.getElementById('legalOverlay').classList.remove('open');
+  const o = document.getElementById('legalOverlay');
+  if (o) o.classList.remove('open');
   // Restore scroll lock if age gate is still showing
   const gate = document.getElementById('ageGateOverlay');
   if (!gate.classList.contains('hidden')) {
