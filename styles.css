@@ -864,3 +864,20 @@ footer{border-top:1px solid var(--b1);padding:48px 64px 36px;max-width:1400px;ma
 .m-share{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:var(--g1);border:1px solid var(--b1);color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fb);transition:all .15s;flex-shrink:0;margin-right:34px}
 .m-share:hover{color:var(--t1);border-color:var(--b2)}
 .m-share svg{flex-shrink:0}
+
+/* ═══════════ SELECT DROPDOWN OPTIONS ═══════════ */
+/* Native <option> elements render against the OS background, not the page,
+   so light text on a dark control becomes invisible once the list opens.
+   Setting both explicitly on the option is the only reliable fix. */
+select option{
+  background-color:#0B1627;
+  color:#E8EFFA;
+  padding:8px 12px;
+}
+select option:checked,
+select option:hover{
+  background-color:#1B2C4A;
+  color:#FFFFFF;
+}
+/* Firefox honours these on the select itself for the open list */
+select{color-scheme:dark}
