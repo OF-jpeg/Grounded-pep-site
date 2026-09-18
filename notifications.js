@@ -54,6 +54,10 @@ function computeNotifications() {
 function refreshNotifications() {
   notifItems = computeNotifications();
   updateNotifBadge();
+  // If the panel is open while this changes, redraw it so the list and the
+  // badge can't disagree
+  const panel = document.getElementById('notifPanel');
+  if (panel && panel.classList.contains('open')) renderNotifPanel();
 }
 
 function updateNotifBadge() {

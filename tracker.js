@@ -355,6 +355,7 @@ async function saveRegimenItem() {
   lsSet('grounded_regimen', regimen);
   closeRegimenModal();
   if(typeof invalidateMyCompounds==='function') invalidateMyCompounds();
+  if(typeof refreshNotifications==='function') refreshNotifications();
   renderRegimenList();
   renderTodayList();
   renderWeekStrip();
@@ -387,6 +388,7 @@ async function deleteRegimenItem(id) {
   regimen = regimen.filter(r => r.id !== id);
   lsSet('grounded_regimen', regimen);
   if(typeof invalidateMyCompounds==='function') invalidateMyCompounds();
+  if(typeof refreshNotifications==='function') refreshNotifications();
   renderRegimenList();
   renderTodayList();
   renderWeekStrip();
@@ -462,6 +464,7 @@ async function saveVial() {
   lsSet('grounded_vials', vials);
   closeVialModal();
   if(typeof invalidateMyCompounds==='function') invalidateMyCompounds();
+  if(typeof refreshNotifications==='function') refreshNotifications();
   renderVialList();
   updatePlanCounts();
   toast('Vial added ✓');
@@ -498,6 +501,7 @@ async function deleteVial(id) {
   vials = vials.filter(v => v.id !== id);
   lsSet('grounded_vials', vials);
   if(typeof invalidateMyCompounds==='function') invalidateMyCompounds();
+  if(typeof refreshNotifications==='function') refreshNotifications();
   renderVialList();
   updatePlanCounts();
   toast('Vial removed');

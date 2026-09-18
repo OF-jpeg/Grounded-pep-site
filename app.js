@@ -212,6 +212,8 @@ function toggleBm(e,id){
   removing?bookmarks.delete(id):bookmarks.add(id);
   saveBookmarks();
   invalidateMyCompounds();
+  // What they track just changed, so the notification set is stale
+  if(typeof refreshNotifications==='function') refreshNotifications();
   if(typeof syncEmailPrefs==='function') syncEmailPrefs();
   renderDB();
   toast(removing?'Removed bookmark':'Bookmarked ✓');
