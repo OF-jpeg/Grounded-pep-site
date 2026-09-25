@@ -3,9 +3,16 @@
 // ══════════════════════════════════════════════════════════════
 // Emails people when new research lands on compounds they track.
 //
-// Only sends when there is something genuinely new for that person —
-// an empty digest is worse than no digest, because it trains people to
-// ignore the sender.
+// Two shapes of email:
+//   Personalised — they track compounds, so they get papers on those.
+//   General      — they asked for alerts but track nothing yet, so they get
+//                  the week's most notable research plus a nudge to pick
+//                  compounds. Without this, anyone who signs up and never
+//                  bookmarks gets silence forever and assumes the site is dead.
+//
+// Either way it only sends when there is something genuinely new for that
+// person — an empty digest is worse than no digest, because it trains people
+// to ignore the sender.
 //
 // Resend's free tier caps at 100 emails/day, so DAILY_CAP guards against
 // silently dropping sends. Raise it if the plan changes.
@@ -19,6 +26,7 @@ const SITE_URL = Deno.env.get("SITE_URL") || "https://groundedpeptides.com";
 const DAILY_CAP = 95;        // stay under Resend's free 100/day
 const LOOKBACK_DAYS = 7;     // how far back counts as "new"
 const MAX_PAPERS_PER_EMAIL = 6;
+const MAX_PAPERS_GENERAL = 4;   // a general digest is an invitation, not a firehose
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,6 +45,16 @@ const norm = (s: string) => (s || "").toLowerCase().replace(/[\s\-\u2013\u2014_]
 const esc = (s: string) => String(s || "")
   .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
+// The compounds most people arrive looking for. Used only to rank a general
+// digest, so someone who tracks nothing still opens on something recognisable
+// rather than whichever obscure paper happened to land last.
+const HEADLINE_COMPOUNDS = [
+  "BPC-157", "TB-500", "Semaglutide", "Tirzepatide", "Retatrutide",
+  "Tesamorelin", "CJC-1295", "Ipamorelin", "Sermorelin", "MOTS-c",
+  "GHK-Cu", "Epitalon", "Semax", "DSIP", "KPV", "AOD-9604",
+  "Thymosin alpha-1", "Kisspeptin",
+].map((c) => norm(c));
+
 async function sb(path: string, options: RequestInit = {}) {
   return fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     ...options,
@@ -50,7 +68,12 @@ async function sb(path: string, options: RequestInit = {}) {
 }
 
 // ── Email template ────────────────────────────────────────────
-function buildEmail(firstName: string, papers: Record<string, string>[], token: string) {
+function buildEmail(
+  firstName: string,
+  papers: Record<string, string>[],
+  token: string,
+  personalized = true,
+) {
   const greeting = firstName ? `Hi ${esc(firstName)},` : "Hi,";
   const count = papers.length;
   const unsubUrl = `${SITE_URL}/?unsubscribe=${encodeURIComponent(token)}`;
@@ -118,12 +141,12 @@ function buildEmail(firstName: string, papers: Record<string, string>[], token: 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>New research on compounds you track</title>
+<title>${personalized ? "New research on compounds you track" : "New peptide research this week"}</title>
 </head>
 <body style="margin:0;padding:0;background:#F1F5F9;-webkit-font-smoothing:antialiased;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
 
   <div style="display:none;max-height:0;overflow:hidden;opacity:0">
-    ${count === 1 ? "One new study" : count + " new studies"} on compounds you track &mdash; ${esc(papers[0].title.slice(0, 80))}
+    ${count === 1 ? "One new study" : count + " new studies"}${personalized ? " on compounds you track" : " in peptide research"} &mdash; ${esc(papers[0].title.slice(0, 80))}
   </div>
 
   <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#F1F5F9;padding:36px 16px">
@@ -134,23 +157,45 @@ function buildEmail(firstName: string, papers: Record<string, string>[], token: 
           <img src="${logoUrl}" width="52" height="52" alt="Grounded"
                style="display:block;border-radius:14px;margin:0 auto 12px">
           <div style="font-size:19px;font-weight:700;color:#0F172A;letter-spacing:-.3px">Grounded</div>
-          <div style="font-size:12px;color:#94A3B8;margin-top:3px">Research alert</div>
+          <div style="font-size:12px;color:#94A3B8;margin-top:3px">${personalized ? "Research alert" : "This week in research"}</div>
         </td></tr>
 
         <tr><td style="padding:0 4px 24px">
           <div style="font-size:15px;color:#334155;line-height:1.75">
             ${greeting}<br><br>
-            ${count === 1
-              ? "One new study was published on a compound you're tracking."
-              : `${count} new studies were published on compounds you're tracking.`}
+            ${personalized
+              ? (count === 1
+                  ? "One new study was published on a compound you're tracking."
+                  : `${count} new studies were published on compounds you're tracking.`)
+              : `Here's some of the most notable peptide research to land recently. ` +
+                `Track the compounds you care about and these emails will only cover those.`}
           </div>
         </td></tr>
 
         ${items}
 
+        ${personalized ? "" : `
+        <tr><td style="padding:6px 0 4px">
+          <table width="100%" cellpadding="0" cellspacing="0" role="presentation"
+                 style="border:1px solid #BFDBFE;border-radius:12px;background:#EFF6FF;border-collapse:separate">
+            <tr><td style="padding:20px 22px">
+              <div style="font-size:15px;font-weight:600;color:#0F172A">Make this yours</div>
+              <div style="font-size:13.5px;color:#475569;line-height:1.7;margin-top:8px">
+                Bookmark any compound on Grounded and we'll email you the moment new
+                research mentions it \u2014 nothing else.
+              </div>
+              <div style="margin-top:16px">
+                <a href="${SITE_URL}/?p=database" style="display:inline-block;background:#1D4ED8;color:#FFFFFF;font-size:13px;font-weight:600;padding:11px 22px;border-radius:9px;text-decoration:none">Pick your compounds</a>
+              </div>
+            </td></tr>
+          </table>
+        </td></tr>`}
+
+        ${!personalized ? "" : `
         <tr><td align="center" style="padding:14px 0 32px">
           <a href="${SITE_URL}" style="display:inline-block;background:#0F172A;color:#FFFFFF;font-size:14px;font-weight:600;padding:13px 28px;border-radius:10px;text-decoration:none">See all research</a>
-        </td></tr>
+        </td></tr>`}
+        ${personalized ? "" : `<tr><td style="padding:0 0 18px"></td></tr>`}
 
         <tr><td style="border-top:1px solid #E2E8F0;padding-top:22px">
           <div style="font-size:12px;color:#94A3B8;line-height:1.75">
@@ -159,7 +204,9 @@ function buildEmail(firstName: string, papers: Record<string, string>[], token: 
             before using any compound.
           </div>
           <div style="font-size:12px;color:#94A3B8;line-height:1.75;margin-top:14px">
-            You're receiving this because you asked for research alerts on compounds you track.<br>
+            ${personalized
+              ? "You're receiving this because you asked for research alerts on compounds you track."
+              : "You're receiving this because you turned on research alerts when you signed up."}<br>
             <a href="${SITE_URL}" style="color:#64748B;text-decoration:underline">Manage preferences</a>
             &nbsp;&middot;&nbsp;
             <a href="${esc(unsubUrl)}" style="color:#64748B;text-decoration:underline">Unsubscribe</a>
@@ -170,6 +217,35 @@ function buildEmail(firstName: string, papers: Record<string, string>[], token: 
     </td></tr>
   </table>
 </body></html>`;
+}
+
+// ── General digest selection ──────────────────────────────────
+// For someone who asked for alerts but hasn't tracked anything yet. Ranks the
+// recent feed so the email opens on a compound they'll recognise, prefers
+// peer-reviewed work over registry entries, and never repeats a compound —
+// four papers on semaglutide reads like a glitch, not a digest.
+function pickGeneralPapers(papers: Record<string, string>[], lastSent: number) {
+  const fresh = papers.filter((p) => new Date(p.created_at).getTime() > lastSent);
+
+  const scored = fresh.map((p) => {
+    const hay = norm(`${p.compounds || ""} ${p.title}`);
+    const headline = HEADLINE_COMPOUNDS.some((c) => hay.includes(c));
+    const reviewed = p.source === "pubmed" || p.source === "europepmc";
+    const summarised = Boolean(p.plain_summary);
+    return { p, score: (headline ? 4 : 0) + (reviewed ? 2 : 0) + (summarised ? 1 : 0) };
+  }).sort((a, b) => b.score - a.score);
+
+  const picked: Record<string, string>[] = [];
+  const usedCompounds = new Set<string>();
+  for (const { p } of scored) {
+    if (picked.length >= MAX_PAPERS_GENERAL) break;
+    // `compounds` is comma-joined; the first one is the paper's headline subject
+    const key = norm((p.compounds || "").split(",")[0] || p.pmid);
+    if (usedCompounds.has(key)) continue;
+    usedCompounds.add(key);
+    picked.push(p);
+  }
+  return picked;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -198,30 +274,45 @@ Deno.serve(async (req) => {
   const papers = feedRes.ok ? await feedRes.json() : [];
   if (!papers.length) return json({ ok: true, sent: 0, message: "No new papers this period." });
 
-  const results = { sent: 0, skipped_no_match: 0, skipped_no_compounds: 0, failed: 0, capped: 0 };
+  const results = {
+    sent: 0, sent_personalized: 0, sent_general: 0,
+    skipped_no_match: 0, skipped_nothing_to_send: 0, failed: 0, capped: 0,
+  };
   const preview: Record<string, unknown>[] = [];
 
   for (const sub of subscribers) {
     if (results.sent >= DAILY_CAP) { results.capped++; continue; }
 
     const tracked: string[] = Array.isArray(sub.tracked_compounds) ? sub.tracked_compounds : [];
-    if (!tracked.length) { results.skipped_no_compounds++; continue; }
-
     const lastSent = sub.last_digest_at ? new Date(sub.last_digest_at).getTime() : 0;
+    // Terms under 3 chars match everything, so they're dropped — which can leave
+    // nothing usable. Treat that like tracking nothing rather than sending silence.
     const trackedNorm = tracked.map(norm).filter((t: string) => t.length >= 3);
+    const personalized = trackedNorm.length > 0;
 
-    // Papers that mention something they track AND arrived since their last digest
-    const matches = papers.filter((p: Record<string, string>) => {
-      if (new Date(p.created_at).getTime() <= lastSent) return false;
-      const hay = norm(`${p.title} ${p.compounds || ""} ${p.plain_summary || ""}`);
-      return trackedNorm.some((t: string) => hay.includes(t));
-    }).slice(0, MAX_PAPERS_PER_EMAIL);
-
-    if (!matches.length) { results.skipped_no_match++; continue; }
+    let matches: Record<string, string>[];
+    if (personalized) {
+      // Papers that mention something they track AND arrived since their last digest
+      matches = papers.filter((p: Record<string, string>) => {
+        if (new Date(p.created_at).getTime() <= lastSent) return false;
+        const hay = norm(`${p.title} ${p.compounds || ""} ${p.plain_summary || ""}`);
+        return trackedNorm.some((t: string) => hay.includes(t));
+      }).slice(0, MAX_PAPERS_PER_EMAIL);
+      if (!matches.length) { results.skipped_no_match++; continue; }
+    } else {
+      matches = pickGeneralPapers(papers, lastSent);
+      if (!matches.length) { results.skipped_nothing_to_send++; continue; }
+    }
 
     if (dryRun) {
-      preview.push({ email: sub.email, matches: matches.length, titles: matches.map((m: Record<string,string>) => m.title) });
+      preview.push({
+        email: sub.email,
+        kind: personalized ? "personalized" : "general",
+        matches: matches.length,
+        titles: matches.map((m: Record<string, string>) => m.title),
+      });
       results.sent++;
+      if (personalized) results.sent_personalized++; else results.sent_general++;
       continue;
     }
 
@@ -235,15 +326,18 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           from: FROM_EMAIL,
           to: [sub.email],
-          subject: matches.length === 1
-            ? `New research: ${matches[0].title.slice(0, 60)}`
-            : `${matches.length} new studies on compounds you track`,
-          html: buildEmail(sub.first_name || "", matches, sub.unsubscribe_token),
+          subject: personalized
+            ? (matches.length === 1
+                ? `New research: ${matches[0].title.slice(0, 60)}`
+                : `${matches.length} new studies on compounds you track`)
+            : `This week in peptide research: ${matches[0].title.slice(0, 55)}`,
+          html: buildEmail(sub.first_name || "", matches, sub.unsubscribe_token, personalized),
         }),
       });
 
       if (send.ok) {
         results.sent++;
+        if (personalized) results.sent_personalized++; else results.sent_general++;
         await sb(`email_preferences?id=eq.${sub.id}`, {
           method: "PATCH",
           headers: { Prefer: "return=minimal" },
